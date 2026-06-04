@@ -1,22 +1,45 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import CoordinatorNav from '@/components/coordinator/CoordinatorNav'
 
 export default async function CoordinatorLayout({ children }: { children: React.ReactNode }) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const auth = await createClient()
+  const { data: { user } } = await auth.auth.getUser()
+
+  console.log('[coordinator/layout] user:', user?.id ?? 'null')
+
   if (!user) redirect('/login')
 
-  const { data: profile } = await supabase
+  const db = createAdminClient()
+  const { data: profile, error } = await db
     .from('profiles')
-    .select('full_name, organization_id, organizations(name)')
+    .select('full_name, role, organization_id')
     .eq('id', user.id)
     .single()
 
-  if (!profile) redirect('/login')
+  console.log('[coordinator/layout] profile:', profile?.role ?? 'null', 'error:', error?.message ?? 'none')
 
-  const orgs = profile.organizations as { name: string } | { name: string }[] | null
-  const orgName = Array.isArray(orgs) ? (orgs[0]?.name ?? '') : (orgs?.name ?? '')
+  if (!profile || profile.role !== 'coordinator') {
+    return (
+      <div style={{ padding: 32, fontFamily: 'monospace' }}>
+        <p><strong>Debug:</strong> user_id = {user.id}</p>
+        <p>profile = {JSON.stringify(profile)}</p>
+        <p>error = {error?.message ?? 'none'}</p>
+        <p>Bitte dieses SQL in Supabase ausführen und Ergebnis teilen:</p>
+        <pre>select id, role from profiles where id = &apos;{user.id}&apos;;</pre>
+      </div>
+    )
+  }
+
+  // Org-Name separat laden
+  const { data: org } = await db
+    .from('organizations')
+    .select('name')
+    .eq('id', profile.organization_id)
+    .single()
+
+  const orgName = org?.name ?? ''
 
   return (
     <div className="min-h-screen flex flex-col">

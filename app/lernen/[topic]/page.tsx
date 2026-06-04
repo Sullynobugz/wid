@@ -1,5 +1,6 @@
 import { notFound, redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { topics } from '@/data/content'
 import { words } from '@/data/words'
 import type { NativeLanguage } from '@/types'
@@ -17,11 +18,12 @@ export default async function TopicPage({ params }: Props) {
 
   const topicWords = words.filter(w => w.topicId === topicId)
 
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const auth = await createClient()
+  const { data: { user } } = await auth.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: profile } = await supabase
+  const db = createAdminClient()
+  const { data: profile } = await db
     .from('profiles')
     .select('native_language')
     .eq('id', user.id)
@@ -29,7 +31,7 @@ export default async function TopicPage({ params }: Props) {
 
   const nativeLang = (profile?.native_language ?? 'ar') as NativeLanguage
 
-  const { data: progressRows } = await supabase
+  const { data: progressRows } = await db
     .from('linguu_progress')
     .select('lesson_type, xp_earned, score')
     .eq('user_id', user.id)

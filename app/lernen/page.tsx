@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Building2, Stethoscope, Home, ShoppingCart, FileText, Phone, GraduationCap, Coffee } from 'lucide-react'
@@ -24,11 +25,12 @@ const TOPICS = [
 ]
 
 export default async function LernenPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const auth = await createClient()
+  const { data: { user } } = await auth.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: profile } = await supabase
+  const db = createAdminClient()
+  const { data: profile } = await db
     .from('profiles')
     .select('native_language, full_name')
     .eq('id', user.id)
@@ -36,7 +38,7 @@ export default async function LernenPage() {
 
   const lang = (profile?.native_language ?? 'ar') as NativeLanguage
 
-  const { data: progressRows } = await supabase
+  const { data: progressRows } = await db
     .from('linguu_progress')
     .select('topic_id, xp_earned')
     .eq('user_id', user.id)

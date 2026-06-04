@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
-import { createClient, createServiceClient } from '@/lib/supabase/server'
+import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { generateParticipantCode, generatePassword, codeToEmail } from '@/lib/passwords'
 import type { NativeLanguage } from '@/types'
 
@@ -9,11 +10,12 @@ interface ParticipantInput {
 }
 
 export async function POST(req: Request) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const auth = await createClient()
+  const { data: { user } } = await auth.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Nicht angemeldet' }, { status: 401 })
 
-  const { data: coordinator } = await supabase
+  const db = createAdminClient()
+  const { data: coordinator } = await db
     .from('profiles')
     .select('role, organization_id')
     .eq('id', user.id)
@@ -28,7 +30,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Keine Teilnehmer' }, { status: 400 })
   }
 
-  const serviceClient = await createServiceClient()
   const created = []
 
   for (const p of participants) {
@@ -39,7 +40,7 @@ export async function POST(req: Request) {
     const password = generatePassword()
     const email = codeToEmail(code)
 
-    const { data: authUser, error: authError } = await serviceClient.auth.admin.createUser({
+    const { data: authUser, error: authError } = await db.auth.admin.createUser({
       email,
       password,
       email_confirm: true,
@@ -47,7 +48,7 @@ export async function POST(req: Request) {
 
     if (authError || !authUser.user) continue
 
-    await serviceClient.from('profiles').insert({
+    await db.from('profiles').insert({
       id: authUser.user.id,
       organization_id: coordinator.organization_id,
       full_name: name,

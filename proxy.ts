@@ -22,31 +22,14 @@ export async function proxy(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   const path = request.nextUrl.pathname
 
+  // Nicht eingeloggt → Login
   if (!user && path !== '/login' && !path.startsWith('/api')) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
+  // Eingeloggt auf Login → /coordinator (Rollencheck passiert im Layout)
   if (user && path === '/login') {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
-
-    const dest = profile?.role === 'coordinator' ? '/coordinator' : '/lernen'
-    return NextResponse.redirect(new URL(dest, request.url))
-  }
-
-  if (user && path.startsWith('/coordinator')) {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
-
-    if (profile?.role !== 'coordinator') {
-      return NextResponse.redirect(new URL('/lernen', request.url))
-    }
+    return NextResponse.redirect(new URL('/coordinator', request.url))
   }
 
   return supabaseResponse

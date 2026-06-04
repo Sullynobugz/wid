@@ -94,16 +94,16 @@ export default function TeilnehmerPage() {
             <div key={i} className="flex gap-2 items-center">
               <input
                 type="text"
-                placeholder={`Vor- und Nachname`}
+                placeholder="Vor- und Nachname"
                 value={row.full_name}
                 onChange={e => updateRow(i, 'full_name', e.target.value)}
                 onPaste={e => handlePaste(e, i)}
-                className="flex-1"
+                style={{ width: 'auto', flex: 1, minWidth: 0 }}
               />
               <select
                 value={row.native_language}
                 onChange={e => updateRow(i, 'native_language', e.target.value as NativeLanguage)}
-                className="w-36"
+                style={{ width: '9rem', flexShrink: 0 }}
               >
                 {LANGUAGES.map(([code, label]) => (
                   <option key={code} value={code}>{label}</option>

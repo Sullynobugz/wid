@@ -1,33 +1,18 @@
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Users, BookOpen, Briefcase, TrendingUp, Plus } from 'lucide-react'
 import type { ParticipantWithStats } from '@/types'
-
-function formatDate(iso: string | null) {
-  if (!iso) return '–'
-  return new Date(iso).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })
-}
-
-function XpBar({ xp }: { xp: number }) {
-  const max = 1000
-  const pct = Math.min((xp / max) * 100, 100)
-  return (
-    <div className="flex items-center gap-2">
-      <div className="flex-1 h-1.5 rounded-full" style={{ background: 'var(--border)' }}>
-        <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: 'var(--primary)' }} />
-      </div>
-      <span className="text-xs font-medium w-14 text-right" style={{ color: 'var(--text)' }}>{xp} XP</span>
-    </div>
-  )
-}
+import ParticipantTable from '@/components/coordinator/ParticipantTable'
 
 export default async function CoordinatorDashboard() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const auth = await createClient()
+  const { data: { user } } = await auth.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: profile } = await supabase
+  const db = createAdminClient()
+  const { data: profile } = await db
     .from('profiles')
     .select('organization_id')
     .eq('id', user.id)
@@ -35,7 +20,7 @@ export default async function CoordinatorDashboard() {
 
   if (!profile) redirect('/login')
 
-  const { data: participants } = await supabase
+  const { data: participants } = await db
     .from('participant_stats')
     .select('*')
     .eq('organization_id', profile.organization_id)
@@ -102,41 +87,7 @@ export default async function CoordinatorDashboard() {
             </Link>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr style={{ borderBottom: `1px solid var(--border)` }}>
-                  {['Name', 'Code', 'Fortschritt', 'Lektionen', 'Jobs', 'Zuletzt aktiv'].map(h => (
-                    <th key={h} className="px-6 py-3 text-left text-xs font-medium" style={{ color: 'var(--muted)' }}>
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {list.map((p, i) => (
-                  <tr key={p.id}
-                    style={{ borderBottom: i < list.length - 1 ? `1px solid var(--border)` : 'none' }}>
-                    <td className="px-6 py-4 font-medium">{p.full_name}</td>
-                    <td className="px-6 py-4">
-                      <span className="font-mono text-xs px-2 py-0.5 rounded"
-                        style={{ background: 'var(--bg)', color: 'var(--muted)' }}>
-                        {p.participant_code}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 min-w-36">
-                      <XpBar xp={p.total_xp} />
-                    </td>
-                    <td className="px-6 py-4 text-center">{p.lessons_completed}</td>
-                    <td className="px-6 py-4 text-center">{p.jobs_saved}</td>
-                    <td className="px-6 py-4" style={{ color: p.last_active ? 'var(--success)' : 'var(--muted)' }}>
-                      {formatDate(p.last_active)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <ParticipantTable participants={list} />
         )}
       </div>
     </div>
