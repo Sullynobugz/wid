@@ -1,5 +1,35 @@
 export type Role = 'coordinator' | 'participant'
 
+export type Language = 'ar' | 'uk' | 'es' | 'en' | 'tr' | 'pl' | 'ro' | 'ru' | 'de' | 'ku'
+
+export interface Phrase {
+  id: string
+  german: string
+  phonetics: string
+  translations: Partial<Record<Language, string>>
+  exampleDE: string
+  exampleTranslations: Partial<Record<Language, string>>
+}
+
+export interface Topic {
+  id: string
+  icon: string
+  titleDE: string
+  subtitleDE: string
+  requiredLevel: string | null
+  alwaysUnlocked: boolean
+  phrases: Phrase[]
+}
+
+export interface Word {
+  id: string
+  german: string
+  article?: 'der' | 'die' | 'das'
+  type: 'nomen' | 'verb' | 'adjektiv' | 'ausdruck'
+  topicId: string
+  translations: Partial<Record<Language, string>>
+}
+
 export type NativeLanguage = 'ar' | 'uk' | 'es' | 'en' | 'ku' | 'tr' | 'pl' | 'ro' | 'ru'
 
 export interface Organization {
