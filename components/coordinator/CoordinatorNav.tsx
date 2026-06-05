@@ -3,14 +3,15 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { LayoutDashboard, Users, LogOut } from 'lucide-react'
+import { LayoutDashboard, Users, LogOut, ShieldAlert } from 'lucide-react'
 
 interface Props {
   userName: string
   orgName: string
+  isGlobalAdmin?: boolean
 }
 
-export default function CoordinatorNav({ userName, orgName }: Props) {
+export default function CoordinatorNav({ userName, orgName, isGlobalAdmin }: Props) {
   const pathname = usePathname()
   const router = useRouter()
 
@@ -50,6 +51,14 @@ export default function CoordinatorNav({ userName, orgName }: Props) {
         </div>
 
         <div className="flex items-center gap-3">
+          {isGlobalAdmin && (
+            <Link href="/admin"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors border"
+              style={{ background: 'rgba(239,68,68,0.08)', borderColor: 'rgba(239,68,68,0.3)', color: '#ef4444' }}>
+              <ShieldAlert size={13} />
+              Admin
+            </Link>
+          )}
           <div className="text-right hidden sm:block">
             <p className="text-sm font-medium leading-none" style={{ color: 'var(--text)' }}>{userName}</p>
             <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>{orgName}</p>

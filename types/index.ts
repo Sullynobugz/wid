@@ -53,6 +53,29 @@ export interface ParticipantWithStats extends Profile {
   lessons_completed: number
   last_active: string | null
   jobs_saved: number
+  // Linguu Wochenstatistik (aus participant_report View)
+  lessons_this_week?: number | null
+  lessons_this_month?: number | null
+  xp_this_week?: number | null
+  avg_quiz_score?: number | null
+  // JobMate Bewerbungen
+  total_applications?: number | null
+  applications_this_week?: number | null
+  applications_this_month?: number | null
+  verified_applications?: number | null
+  last_applied_at?: string | null
+  assessment_level?: string | null
+}
+
+export interface ApplicationRecord {
+  id: string
+  job_title: string | null
+  company: string | null
+  job_url: string | null
+  applied_at: string | null
+  email_proof: string | null
+  verified: boolean
+  created_at: string
 }
 
 export interface LinguuProgress {

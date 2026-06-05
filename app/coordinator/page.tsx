@@ -14,22 +14,56 @@ export default async function CoordinatorDashboard() {
   const db = createAdminClient()
   const { data: profile } = await db
     .from('profiles')
-    .select('organization_id')
+    .select('organization_id, role')
     .eq('id', user.id)
     .single()
 
   if (!profile) redirect('/login')
+  if (profile.role === 'global_admin') redirect('/admin')
 
-  const { data: participants } = await db
-    .from('participant_stats')
+  // participant_report View enthält Linguu + JobMate Stats (nach Migration 003)
+  // Fallback auf participant_stats wenn View noch nicht existiert
+  let participants: ParticipantWithStats[] | null = null
+  const reportResult = await db
+    .from('participant_report')
     .select('*')
     .eq('organization_id', profile.organization_id)
-    .order('last_active', { ascending: false, nullsFirst: false }) as { data: ParticipantWithStats[] | null }
+    .order('last_linguu_active', { ascending: false, nullsFirst: false })
+  if (!reportResult.error) {
+    participants = reportResult.data as ParticipantWithStats[]
+  } else {
+    const fallback = await db
+      .from('participant_stats')
+      .select('*')
+      .eq('organization_id', profile.organization_id)
+      .order('last_active', { ascending: false, nullsFirst: false })
+    participants = fallback.data as ParticipantWithStats[]
+  }
 
-  const list = participants ?? []
+  // Assessment-Level pro Teilnehmer (neuestes Ergebnis)
+  const userIds = (participants ?? []).map(p => p.id)
+  let assessmentMap: Record<string, string> = {}
+  if (userIds.length > 0) {
+    const { data: assessments } = await db
+      .from('assessment_results')
+      .select('user_id, level, created_at')
+      .in('user_id', userIds)
+      .order('created_at', { ascending: false })
+    if (assessments) {
+      for (const a of assessments) {
+        if (!assessmentMap[a.user_id]) assessmentMap[a.user_id] = a.level
+      }
+    }
+  }
+
+  const list = (participants ?? []).map(p => ({
+    ...p,
+    assessment_level: assessmentMap[p.id] ?? null,
+  }))
   const activeCount = list.filter(p => p.last_active).length
   const totalLessons = list.reduce((s, p) => s + p.lessons_completed, 0)
-  const totalJobs = list.reduce((s, p) => s + p.jobs_saved, 0)
+  const totalApplications = list.reduce((s, p) => s + (p.total_applications ?? 0), 0)
+  const applicationsThisWeek = list.reduce((s, p) => s + (p.applications_this_week ?? 0), 0)
 
   return (
     <div>
@@ -54,7 +88,7 @@ export default async function CoordinatorDashboard() {
           { label: 'Teilnehmer', value: list.length, icon: Users, color: 'var(--primary)' },
           { label: 'Aktiv diese Woche', value: activeCount, icon: TrendingUp, color: 'var(--success)' },
           { label: 'Lektionen gesamt', value: totalLessons, icon: BookOpen, color: 'var(--accent)' },
-          { label: 'Jobs gemerkt', value: totalJobs, icon: Briefcase, color: 'var(--warning)' },
+          { label: 'Bewerbungen (Woche)', value: applicationsThisWeek, icon: Briefcase, color: 'var(--warning)' },
         ].map(({ label, value, icon: Icon, color }) => (
           <div key={label} className="card flex items-start gap-3">
             <div className="p-2 rounded-lg" style={{ background: `${color}15` }}>

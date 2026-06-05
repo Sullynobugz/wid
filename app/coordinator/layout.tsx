@@ -20,7 +20,8 @@ export default async function CoordinatorLayout({ children }: { children: React.
 
   console.log('[coordinator/layout] profile:', profile?.role ?? 'null', 'error:', error?.message ?? 'none')
 
-  if (!profile || profile.role !== 'coordinator') {
+  const allowedRoles = ['coordinator', 'global_admin']
+  if (!profile || !allowedRoles.includes(profile.role)) {
     return (
       <div style={{ padding: 32, fontFamily: 'monospace' }}>
         <p><strong>Debug:</strong> user_id = {user.id}</p>
@@ -31,6 +32,8 @@ export default async function CoordinatorLayout({ children }: { children: React.
       </div>
     )
   }
+
+  const isGlobalAdmin = profile.role === 'global_admin'
 
   // Org-Name separat laden
   const { data: org } = await db
@@ -43,7 +46,7 @@ export default async function CoordinatorLayout({ children }: { children: React.
 
   return (
     <div className="min-h-screen flex flex-col">
-      <CoordinatorNav userName={profile.full_name} orgName={orgName} />
+      <CoordinatorNav userName={profile.full_name} orgName={orgName} isGlobalAdmin={isGlobalAdmin} />
       <main className="flex-1 max-w-6xl mx-auto w-full px-4 py-8">
         {children}
       </main>
