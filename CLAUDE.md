@@ -76,14 +76,29 @@ data/words.ts            # 2000 Vokabeln (aus Linguu kopiert)
 npm run dev -- --port 4000   # Empfohlen: fester Port wegen Browser-Cache
 ```
 
+## ⚠️ Kritisch: Migrations noch nicht ausgeführt
+Folgende SQL-Dateien müssen im Supabase SQL-Editor ausgeführt werden:
+1. `supabase/migrations/002_admin_token_assessment.sql`
+2. `supabase/migrations/003_crossapp_tracking.sql`
+3. `supabase/migrations/004_pipeline_todos_deep_stats.sql`
+4. `supabase/migrations/999_set_global_admin.sql` (einmalig, Voraussetzung: 002 gelaufen)
+
+## Global Admin — Recovery
+Der einzige Recovery-Pfad ist Supabase Dashboard → SQL Editor → 999_set_global_admin.sql erneut ausführen.
+Kein In-App-Recovery nötig. Zugang nur für bastian.sb94@gmail.com + role = 'global_admin'.
+
 ## Nächste Schritte
-1. **Coolify-Deploy** — GitHub-Push + neue Resource → wid.techstag.de
-2. **E-Mail an Träger** — schriftliche Bestätigung: Juni kostenlos, ab Juli 40€/TN
-3. **Participant-Login testen** — Incognito-Tab, Code + PW aus Credentials-Sheet
-4. **Whisper/TTS in Produktion testen** — API-Keys laufen, braucht echten Browser-Test
+1. **Migrations ausführen** (Supabase Dashboard) — Blocker für alle neuen Features
+2. **global_admin setzen** (999_set_global_admin.sql) — dann /admin erreichbar
+3. **Coolify-Deploy** — GitHub-Push + neue Resource → wid.techstag.de
+4. **E-Mail an Träger** — schriftliche Bestätigung: Juni kostenlos, ab Juli 40€/TN
 
 ## Entwicklungslog
 | Datum | Was & Warum |
 |-------|-------------|
 | 2026-06-04 | MVP gebaut: Auth, Coordinator-Dashboard, Teilnehmer-Anlegen, Lernmodule (Phrasen/Vocab/Quiz), alle API-Proxies, Supabase-Schema |
 | 2026-06-04 | Debugging: Auth/Admin-Client-Trennung, GRANT-Fix, proxy.ts statt middleware.ts — alles lokal funktionsfähig |
+| 2026-06-05 | Global Admin Panel mit Tabs: Übersicht, Pipeline, To-Dos, Organisationen, Assessments, Kosten |
+| 2026-06-05 | Deep Stats: MRR, Completion-Rate, Churn, Weekly Activity, Outreach-Pipeline |
+| 2026-06-05 | Teilnehmer-View: WID-Code prominent + /lernen/jobs Seite + Sprachauswahl im Nav |
+| 2026-06-05 | Cross-App-Tracking: Linguu trackProgress() in Quiz + Lesson, JobMate ApplicationModal |
