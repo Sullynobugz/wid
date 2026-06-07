@@ -20,9 +20,32 @@ const MODULE_LABELS: Record<NativeLanguage, { themen: string; linguu: string; jo
   ru: { themen: 'Учёба', linguu: 'Лингуу', jobs: 'Работа' },
 }
 
-const DE_NAV = { themen: 'Lernen', linguu: 'Linguu', jobs: 'Jobs' }
-
+const DE_NAV = { themen: 'Lernen', linguu: 'Sprache', jobs: 'Arbeit' }
 const ALL_LANGUAGES: NativeLanguage[] = ['ar', 'uk', 'es', 'en', 'ku', 'tr', 'pl', 'ro', 'ru']
+
+const PILLARS = [
+  {
+    href: '/lernen/themen',
+    key: 'themen' as const,
+    productName: 'WID',
+    icon: GraduationCap,
+    color: '#6366f1',
+  },
+  {
+    href: '/lernen/linguu',
+    key: 'linguu' as const,
+    productName: 'Linguu',
+    icon: BookOpen,
+    color: '#10b981',
+  },
+  {
+    href: '/lernen/jobs',
+    key: 'jobs' as const,
+    productName: 'JobMate',
+    icon: Briefcase,
+    color: '#f59e0b',
+  },
+]
 
 interface Props {
   userName: string
@@ -58,92 +81,164 @@ export default function ParticipantNav({ userName, nativeLang }: Props) {
     }
   }
 
-  const navLinks = [
-    { href: '/lernen/themen', nativeLabel: labels.themen, deLabel: DE_NAV.themen, icon: GraduationCap },
-    { href: '/lernen/linguu', nativeLabel: labels.linguu, deLabel: DE_NAV.linguu, icon: BookOpen },
-    { href: '/lernen/jobs', nativeLabel: labels.jobs, deLabel: DE_NAV.jobs, icon: Briefcase },
-  ]
-
   function isActive(href: string) {
-    if (href === '/lernen/themen') return pathname === '/lernen/themen' || pathname.startsWith('/lernen/') && !pathname.startsWith('/lernen/linguu') && !pathname.startsWith('/lernen/jobs') && pathname !== '/lernen'
+    if (href === '/lernen/themen')
+      return pathname === '/lernen/themen' ||
+        (pathname.startsWith('/lernen/') &&
+          !pathname.startsWith('/lernen/linguu') &&
+          !pathname.startsWith('/lernen/jobs') &&
+          pathname !== '/lernen')
     return pathname === href || pathname.startsWith(href + '/')
   }
 
   return (
-    <nav className="border-b sticky top-0 z-30" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
-      <div className="max-w-2xl mx-auto px-4 h-14 flex items-center gap-4">
+    <nav
+      className="sticky top-0 z-30 border-b"
+      style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}
+    >
+      {/* ── Row 1: Top bar ── */}
+      <div
+        className="border-b"
+        style={{ borderColor: 'var(--border)' }}
+      >
+        <div className="max-w-2xl mx-auto px-4 h-11 flex items-center justify-between">
+          {/* Logo */}
+          <Link
+            href="/lernen"
+            className="flex items-center gap-2 font-bold text-sm cursor-pointer"
+            style={{ fontFamily: 'Fira Code, monospace', color: 'var(--primary)', textDecoration: 'none' }}
+          >
+            <div
+              className="w-6 h-6 rounded-md flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
+              style={{ background: 'var(--primary)' }}
+            >
+              W
+            </div>
+            Willkommen in Deutschland
+          </Link>
 
-        {/* WID Logo → Hub */}
-        <Link href="/lernen" className="flex items-center gap-2 font-bold text-base mr-2 cursor-pointer"
-          style={{ fontFamily: 'Fira Code, monospace', color: 'var(--primary)', textDecoration: 'none' }}>
-          <div className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-sm font-bold"
-            style={{ background: 'var(--primary)' }}>W</div>
-          WID
-        </Link>
-
-        {/* Nav Links */}
-        <div className="flex items-center gap-1 flex-1">
-          {navLinks.map(({ href, nativeLabel, deLabel, icon: Icon }) => {
-            const active = isActive(href)
-            const showDe = nativeLabel !== deLabel
-            return (
-              <Link key={href} href={href}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-sm font-medium transition-colors cursor-pointer"
+          {/* Rechte Seite */}
+          <div className="flex items-center gap-1">
+            {/* Sprachauswahl */}
+            <div className="relative">
+              <button
+                onClick={() => setShowLangMenu(v => !v)}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-sm transition-colors cursor-pointer"
                 style={{
-                  background: active ? 'rgba(37,99,235,0.08)' : 'transparent',
-                  color: active ? 'var(--primary)' : 'var(--muted)',
+                  background: showLangMenu ? 'rgba(99,102,241,0.1)' : 'transparent',
+                  color: showLangMenu ? 'var(--primary)' : 'var(--muted)',
+                }}
+              >
+                <Globe size={15} />
+                <span className="hidden sm:inline text-xs">{NATIVE_LANGUAGE_NATIVE[nativeLang]}</span>
+              </button>
+
+              {showLangMenu && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setShowLangMenu(false)} />
+                  <div
+                    className="absolute right-0 top-full mt-1 z-50 rounded-xl overflow-hidden"
+                    style={{
+                      background: 'var(--surface)',
+                      border: '1px solid var(--border)',
+                      boxShadow: '0 8px 24px rgba(0,0,0,0.18)',
+                      minWidth: 160,
+                    }}
+                  >
+                    {ALL_LANGUAGES.map(lang => (
+                      <button
+                        key={lang}
+                        onClick={() => changeLanguage(lang)}
+                        className="w-full flex items-center justify-between px-4 py-2.5 text-sm text-left cursor-pointer transition-colors"
+                        style={{
+                          background: lang === nativeLang ? 'rgba(99,102,241,0.08)' : 'transparent',
+                          color: lang === nativeLang ? 'var(--primary)' : 'var(--text)',
+                        }}
+                      >
+                        <span>{NATIVE_LANGUAGE_NATIVE[lang]}</span>
+                        {lang === nativeLang && <Check size={14} style={{ color: 'var(--primary)' }} />}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+
+            <button
+              onClick={signOut}
+              className="p-2 rounded-lg cursor-pointer transition-colors"
+              style={{ color: 'var(--muted)' }}
+              aria-label="Abmelden"
+            >
+              <LogOut size={15} />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Row 2: Pillar switcher ── */}
+      <div className="max-w-2xl mx-auto px-3 py-2.5">
+        <div className="grid grid-cols-3 gap-2">
+          {PILLARS.map(({ href, key, productName, icon: Icon, color }) => {
+            const active = isActive(href)
+            const nativeLabel = labels[key]
+            const deLabel = DE_NAV[key]
+            const showDe = nativeLabel !== deLabel
+
+            return (
+              <Link
+                key={href}
+                href={href}
+                className="flex flex-col items-center gap-1.5 py-3 px-2 rounded-2xl cursor-pointer transition-all duration-200"
+                style={{
+                  background: active ? `${color}14` : 'transparent',
+                  border: `1.5px solid ${active ? color : 'var(--border)'}`,
+                  boxShadow: active ? `0 0 16px ${color}22` : 'none',
                   textDecoration: 'none',
-                }}>
-                <Icon size={14} />
-                <span className="flex flex-col leading-none">
-                  <span>{nativeLabel}</span>
-                  {showDe && <span className="text-[10px] opacity-60">{deLabel}</span>}
-                </span>
+                }}
+                onMouseEnter={e => {
+                  if (!active) (e.currentTarget as HTMLElement).style.borderColor = `${color}80`
+                }}
+                onMouseLeave={e => {
+                  if (!active) (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'
+                }}
+              >
+                {/* Icon bubble */}
+                <div
+                  className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-200"
+                  style={{
+                    background: active ? `${color}22` : `${color}12`,
+                  }}
+                >
+                  <Icon size={20} style={{ color }} />
+                </div>
+
+                {/* Labels */}
+                <div className="text-center leading-none">
+                  <p
+                    className="font-bold text-sm leading-tight"
+                    style={{ color: active ? color : 'var(--text)' }}
+                  >
+                    {productName}
+                  </p>
+                  <p
+                    className="text-xs mt-0.5 leading-tight"
+                    style={{ color: active ? `${color}cc` : 'var(--muted)' }}
+                  >
+                    {nativeLabel}
+                  </p>
+                  {showDe && (
+                    <p
+                      className="text-[10px] mt-0.5 leading-tight"
+                      style={{ color: active ? `${color}88` : 'var(--muted)', opacity: 0.65 }}
+                    >
+                      {deLabel}
+                    </p>
+                  )}
+                </div>
               </Link>
             )
           })}
-        </div>
-
-        {/* Rechte Seite */}
-        <div className="flex items-center gap-1">
-          {/* Sprache */}
-          <div className="relative">
-            <button
-              onClick={() => setShowLangMenu(v => !v)}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-sm transition-colors cursor-pointer"
-              style={{
-                background: showLangMenu ? 'rgba(37,99,235,0.08)' : 'transparent',
-                color: showLangMenu ? 'var(--primary)' : 'var(--muted)',
-              }}
-            >
-              <Globe size={15} />
-              <span className="hidden sm:inline">{NATIVE_LANGUAGE_NATIVE[nativeLang]}</span>
-            </button>
-
-            {showLangMenu && (
-              <>
-                <div className="fixed inset-0 z-40" onClick={() => setShowLangMenu(false)} />
-                <div className="absolute right-0 top-full mt-1 z-50 rounded-xl overflow-hidden"
-                  style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: '0 8px 24px rgba(0,0,0,0.12)', minWidth: 160 }}>
-                  {ALL_LANGUAGES.map(lang => (
-                    <button key={lang} onClick={() => changeLanguage(lang)}
-                      className="w-full flex items-center justify-between px-4 py-2.5 text-sm text-left cursor-pointer transition-colors"
-                      style={{
-                        background: lang === nativeLang ? 'rgba(37,99,235,0.06)' : 'transparent',
-                        color: lang === nativeLang ? 'var(--primary)' : 'var(--text)',
-                      }}>
-                      <span>{NATIVE_LANGUAGE_NATIVE[lang]}</span>
-                      {lang === nativeLang && <Check size={14} style={{ color: 'var(--primary)' }} />}
-                    </button>
-                  ))}
-                </div>
-              </>
-            )}
-          </div>
-
-          <button onClick={signOut} className="p-2 rounded-lg cursor-pointer" style={{ color: 'var(--muted)' }}>
-            <LogOut size={16} />
-          </button>
         </div>
       </div>
     </nav>
