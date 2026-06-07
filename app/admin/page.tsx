@@ -854,19 +854,47 @@ const LANG_LABELS: Record<string, string> = {
 }
 
 interface CreatedParticipant { participant_code: string; password: string; full_name: string }
+interface LocalOrg { org_id: string; org_name: string }
 
-function TestTab({ orgs }: { orgs: OrgStat[] }) {
+function TestTab({ orgs: initialOrgs }: { orgs: OrgStat[] }) {
+  const [orgs, setOrgs] = useState<LocalOrg[]>(initialOrgs.map(o => ({ org_id: o.org_id, org_name: o.org_name })))
+  const [orgName, setOrgName] = useState('Test-Organisation')
+  const [orgLoading, setOrgLoading] = useState(false)
+  const [orgError, setOrgError] = useState<string | null>(null)
+
   const [vorname, setVorname] = useState('')
   const [nachname, setNachname] = useState('')
   const [lang, setLang] = useState('ar')
-  const [orgId, setOrgId] = useState(orgs[0]?.org_id ?? '')
+  const [orgId, setOrgId] = useState(initialOrgs[0]?.org_id ?? '')
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<CreatedParticipant | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [copied, setCopied] = useState<'code' | 'pw' | null>(null)
 
+  const createOrg = async () => {
+    if (!orgName.trim()) return
+    setOrgLoading(true)
+    setOrgError(null)
+    try {
+      const res = await fetch('/api/admin/create-org', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: orgName.trim() }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'Fehler')
+      const newOrg = { org_id: data.id, org_name: data.name }
+      setOrgs(prev => [...prev, newOrg])
+      setOrgId(data.id)
+    } catch (e: unknown) {
+      setOrgError(e instanceof Error ? e.message : 'Fehler')
+    } finally {
+      setOrgLoading(false)
+    }
+  }
+
   const create = async () => {
-    if (!vorname.trim() || !nachname.trim()) return
+    if (!vorname.trim() || !nachname.trim() || !orgId) return
     setLoading(true)
     setError(null)
     setResult(null)
@@ -900,13 +928,48 @@ function TestTab({ orgs }: { orgs: OrgStat[] }) {
 
   return (
     <div className="max-w-lg space-y-6">
-      <div className="card space-y-4">
+
+      {/* Org anlegen falls keine vorhanden */}
+      {orgs.length === 0 && (
+        <div className="card space-y-3" style={{ borderColor: 'var(--border)' }}>
+          <div className="flex items-center gap-2">
+            <Building2 size={16} style={{ color: 'var(--primary)' }} />
+            <h2 className="text-sm font-semibold">Schritt 1: Organisation anlegen</h2>
+          </div>
+          <p className="text-xs" style={{ color: 'var(--muted)' }}>
+            Noch keine Organisation vorhanden. Leg eine Test-Org an, bevor du Teilnehmer erstellen kannst.
+          </p>
+          <div className="flex gap-2">
+            <input
+              value={orgName}
+              onChange={e => setOrgName(e.target.value)}
+              placeholder="Test-Organisation"
+              className="flex-1 px-3 py-2 rounded-lg text-sm outline-none"
+              style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'var(--text)' }}
+            />
+            <button
+              onClick={createOrg}
+              disabled={orgLoading || !orgName.trim()}
+              className="px-4 py-2 rounded-lg text-sm font-semibold cursor-pointer disabled:opacity-50 transition-colors"
+              style={{ background: 'var(--primary)', color: '#fff' }}
+            >
+              {orgLoading ? '…' : 'Anlegen'}
+            </button>
+          </div>
+          {orgError && <p className="text-xs" style={{ color: '#dc2626' }}>{orgError}</p>}
+        </div>
+      )}
+
+      {/* Teilnehmer Formular */}
+      <div className="card space-y-4" style={{ opacity: orgs.length === 0 ? 0.4 : 1 }}>
         <div className="flex items-center gap-2">
           <FlaskConical size={18} style={{ color: 'var(--primary)' }} />
-          <h2 className="text-base font-semibold">Schnell-Teilnehmer anlegen</h2>
+          <h2 className="text-base font-semibold">
+            {orgs.length === 0 ? 'Schritt 2: ' : ''}Teilnehmer anlegen
+          </h2>
         </div>
         <p className="text-sm" style={{ color: 'var(--muted)' }}>
-          Legt einen Test-Teilnehmer an und gibt WID-Code + Passwort aus, damit du dich als Teilnehmer anmelden kannst.
+          WID-Code + Passwort werden automatisch generiert und angezeigt.
         </p>
 
         <div className="grid grid-cols-2 gap-3">
@@ -916,6 +979,7 @@ function TestTab({ orgs }: { orgs: OrgStat[] }) {
               value={vorname}
               onChange={e => setVorname(e.target.value)}
               placeholder="Max"
+              disabled={orgs.length === 0}
               className="w-full px-3 py-2 rounded-lg text-sm outline-none"
               style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'var(--text)' }}
             />
@@ -926,6 +990,7 @@ function TestTab({ orgs }: { orgs: OrgStat[] }) {
               value={nachname}
               onChange={e => setNachname(e.target.value)}
               placeholder="Mustermann"
+              disabled={orgs.length === 0}
               className="w-full px-3 py-2 rounded-lg text-sm outline-none"
               style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'var(--text)' }}
             />
@@ -938,6 +1003,7 @@ function TestTab({ orgs }: { orgs: OrgStat[] }) {
             <select
               value={lang}
               onChange={e => setLang(e.target.value)}
+              disabled={orgs.length === 0}
               className="w-full px-3 py-2 rounded-lg text-sm outline-none cursor-pointer"
               style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'var(--text)' }}
             >
@@ -951,13 +1017,13 @@ function TestTab({ orgs }: { orgs: OrgStat[] }) {
             <select
               value={orgId}
               onChange={e => setOrgId(e.target.value)}
+              disabled={orgs.length === 0}
               className="w-full px-3 py-2 rounded-lg text-sm outline-none cursor-pointer"
               style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'var(--text)' }}
             >
               {orgs.map(o => (
                 <option key={o.org_id} value={o.org_id}>{o.org_name}</option>
               ))}
-              {orgs.length === 0 && <option value="">Keine Orgs vorhanden</option>}
             </select>
           </div>
         </div>
