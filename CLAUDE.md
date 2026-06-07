@@ -13,7 +13,6 @@ B2G SaaS-Plattform für private Maßnahme-Träger (Vereine, Bildungsträger). In
 - **Auth + DB**: Supabase
 - **Styling**: Tailwind CSS + CSS Variables
 - **KI**: Anthropic API (claude-sonnet-4-6) — serverseitig via `/api/claude`
-- **Audio**: OpenAI TTS + Whisper — serverseitig via `/api/openai/`
 - **Deployment**: Coolify (Hetzner 167.233.30.113) → wid.techstag.de
 
 ## ⚠️ Kritisches Auth-Pattern
@@ -51,8 +50,7 @@ app/
     ├── coordinator/participants/   # Teilnehmer anlegen
     ├── coordinator/reset-password/ # Passwort zurücksetzen
     ├── progress/                   # Fortschritt speichern
-    ├── claude/                     # Anthropic-Proxy
-    └── openai/{tts,whisper}/       # OpenAI-Proxies
+    └── claude/                     # Anthropic-Proxy
 
 lib/supabase/client.ts   # Browser-Client (anon)
 lib/supabase/server.ts   # Server-Client (anon, SSR) — NUR für auth.getUser()
@@ -88,6 +86,12 @@ npm run dev -- --port 4000   # Empfohlen: fester Port wegen Browser-Cache
 Der einzige Recovery-Pfad ist Supabase Dashboard → SQL Editor → 999_set_global_admin.sql erneut ausführen.
 Kein In-App-Recovery nötig. Zugang nur für bastian.sb94@gmail.com + role = 'global_admin'.
 
+## ⚠️ Kein Audio in WID
+`app/lernen/[topic]/LessonClient.tsx` hat **kein TTS/Whisper** mehr. Audio-Logik (speak(), Volume2-Icon, Mikrofon-Button) wurde bewusst entfernt — Linguu ist die dedizierte Audio-App. Die OpenAI-Proxies (`/api/openai/tts/` und `/api/openai/whisper/`) wurden gelöscht. Nicht wieder einbauen.
+
+## ⚠️ GuideSection — permanente Anleitung
+`components/lernen/GuideSection.tsx` ist eine dauerhaft sichtbare, einklappbare Anleitung auf der Hub-Seite (`app/lernen/page.tsx`). Erklärt den 3-App-Flow (WID → Linguu → JobMate) in allen 9 Sprachen bilingual. Zeigt den WID-Code mit Copy-Button direkt beim Linguu-Schritt. Wird nur gerendert wenn `profile?.participant_code` vorhanden ist.
+
 ## Nächste Schritte
 1. **Supabase Redirect-URL** — `https://wid.techstag.de/auth/reset-password` unter Authentication → URL Configuration eintragen (Backlog)
 2. **E-Mail an Träger** — schriftliche Bestätigung: Juni kostenlos, ab Juli 40€/TN
@@ -103,3 +107,4 @@ Kein In-App-Recovery nötig. Zugang nur für bastian.sb94@gmail.com + role = 'gl
 | 2026-06-05 | Teilnehmer-View: WID-Code prominent + /lernen/jobs Seite + Sprachauswahl im Nav |
 | 2026-06-05 | Cross-App-Tracking: Linguu trackProgress() in Quiz + Lesson, JobMate ApplicationModal |
 | 2026-06-07 | Live deployed: wid.techstag.de via Coolify (Hetzner), Webhook aktiv, alle Migrations ausgeführt, global_admin gesetzt, Passwort-vergessen-Flow hinzugefügt |
+| 2026-06-07 | Audio aus LessonClient entfernt (gehört zu Linguu, nicht WID). OpenAI-Proxies gelöscht. GuideSection hinzugefügt (permanente 3-App-Anleitung auf Hub-Seite, einklappbar, bilingual) |
