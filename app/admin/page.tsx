@@ -4,7 +4,7 @@ import {
   Building2, Users, Euro, BookOpen, ChevronDown, ChevronUp,
   TrendingUp, AlertTriangle, CheckCircle2, Circle, Clock,
   Plus, Trash2, ArrowUpRight, Target, Activity, ListTodo,
-  Flame, Zap, RefreshCw,
+  Flame, Zap, RefreshCw, FlaskConical, Copy, CheckCheck,
 } from 'lucide-react'
 
 // ── Types ──────────────────────────────────────────────────────
@@ -66,7 +66,7 @@ const TODO_CATEGORY_COLOR: Record<string, string> = {
   tech: '#6366f1', business: '#10b981', product: '#f59e0b', general: '#8b8fa8',
 }
 
-type Tab = 'overview' | 'pipeline' | 'todos' | 'orgs' | 'assessments' | 'costs'
+type Tab = 'overview' | 'pipeline' | 'todos' | 'orgs' | 'assessments' | 'costs' | 'test'
 
 // ── Main Component ──────────────────────────────────────────────
 export default function AdminPage() {
@@ -109,6 +109,7 @@ export default function AdminPage() {
     { id: 'orgs', label: 'Organisationen', badge: stats?.orgs.length },
     { id: 'assessments', label: 'Assessments' },
     { id: 'costs', label: 'API-Kosten' },
+    { id: 'test', label: 'Test-Zugang' },
   ]
 
   return (
@@ -155,6 +156,7 @@ export default function AdminPage() {
       {tab === 'orgs' && <OrgsTab orgs={stats?.orgs ?? []} expanded={expanded} setExpanded={setExpanded} />}
       {tab === 'assessments' && <AssessmentsTab assessments={stats?.recentAssessments ?? []} />}
       {tab === 'costs' && <CostsTab costByApp={stats?.costByApp ?? []} totalMonth={stats?.totalCostEurMonth ?? 0} />}
+      {tab === 'test' && <TestTab orgs={stats?.orgs ?? []} />}
     </div>
   )
 }
@@ -841,6 +843,183 @@ function OrgDetail({ orgId }: { orgId: string }) {
           </div>
         ))}
       </div>
+    </div>
+  )
+}
+
+// ── Test-Zugang Tab ────────────────────────────────────────────
+const LANG_LABELS: Record<string, string> = {
+  ar: 'Arabisch', uk: 'Ukrainisch', es: 'Spanisch', en: 'Englisch',
+  ku: 'Kurdisch', tr: 'Türkisch', pl: 'Polnisch', ro: 'Rumänisch', ru: 'Russisch',
+}
+
+interface CreatedParticipant { participant_code: string; password: string; full_name: string }
+
+function TestTab({ orgs }: { orgs: OrgStat[] }) {
+  const [vorname, setVorname] = useState('')
+  const [nachname, setNachname] = useState('')
+  const [lang, setLang] = useState('ar')
+  const [orgId, setOrgId] = useState(orgs[0]?.org_id ?? '')
+  const [loading, setLoading] = useState(false)
+  const [result, setResult] = useState<CreatedParticipant | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [copied, setCopied] = useState<'code' | 'pw' | null>(null)
+
+  const create = async () => {
+    if (!vorname.trim() || !nachname.trim()) return
+    setLoading(true)
+    setError(null)
+    setResult(null)
+    try {
+      const res = await fetch('/api/admin/create-participant', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          full_name: `${vorname.trim()} ${nachname.trim()}`,
+          native_language: lang,
+          org_id: orgId,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'Unbekannter Fehler')
+      setResult(data)
+      setVorname('')
+      setNachname('')
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Fehler')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const copy = (text: string, type: 'code' | 'pw') => {
+    navigator.clipboard.writeText(text)
+    setCopied(type)
+    setTimeout(() => setCopied(null), 2000)
+  }
+
+  return (
+    <div className="max-w-lg space-y-6">
+      <div className="card space-y-4">
+        <div className="flex items-center gap-2">
+          <FlaskConical size={18} style={{ color: 'var(--primary)' }} />
+          <h2 className="text-base font-semibold">Schnell-Teilnehmer anlegen</h2>
+        </div>
+        <p className="text-sm" style={{ color: 'var(--muted)' }}>
+          Legt einen Test-Teilnehmer an und gibt WID-Code + Passwort aus, damit du dich als Teilnehmer anmelden kannst.
+        </p>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-xs font-medium mb-1" style={{ color: 'var(--muted)' }}>Vorname</label>
+            <input
+              value={vorname}
+              onChange={e => setVorname(e.target.value)}
+              placeholder="Max"
+              className="w-full px-3 py-2 rounded-lg text-sm outline-none"
+              style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'var(--text)' }}
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium mb-1" style={{ color: 'var(--muted)' }}>Nachname</label>
+            <input
+              value={nachname}
+              onChange={e => setNachname(e.target.value)}
+              placeholder="Mustermann"
+              className="w-full px-3 py-2 rounded-lg text-sm outline-none"
+              style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'var(--text)' }}
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-xs font-medium mb-1" style={{ color: 'var(--muted)' }}>Sprache</label>
+            <select
+              value={lang}
+              onChange={e => setLang(e.target.value)}
+              className="w-full px-3 py-2 rounded-lg text-sm outline-none cursor-pointer"
+              style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'var(--text)' }}
+            >
+              {Object.entries(LANG_LABELS).map(([k, v]) => (
+                <option key={k} value={k}>{v}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-medium mb-1" style={{ color: 'var(--muted)' }}>Organisation</label>
+            <select
+              value={orgId}
+              onChange={e => setOrgId(e.target.value)}
+              className="w-full px-3 py-2 rounded-lg text-sm outline-none cursor-pointer"
+              style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'var(--text)' }}
+            >
+              {orgs.map(o => (
+                <option key={o.org_id} value={o.org_id}>{o.org_name}</option>
+              ))}
+              {orgs.length === 0 && <option value="">Keine Orgs vorhanden</option>}
+            </select>
+          </div>
+        </div>
+
+        <button
+          onClick={create}
+          disabled={loading || !vorname.trim() || !nachname.trim() || !orgId}
+          className="w-full py-2.5 rounded-lg text-sm font-semibold transition-colors cursor-pointer disabled:opacity-50"
+          style={{ background: 'var(--primary)', color: '#fff' }}
+        >
+          {loading ? 'Wird angelegt…' : 'Teilnehmer anlegen'}
+        </button>
+
+        {error && (
+          <div className="px-3 py-2 rounded-lg text-sm" style={{ background: '#fee2e2', color: '#dc2626' }}>
+            {error}
+          </div>
+        )}
+      </div>
+
+      {result && (
+        <div className="card space-y-4 border-2" style={{ borderColor: '#10b981' }}>
+          <div className="flex items-center gap-2">
+            <CheckCircle2 size={18} style={{ color: '#10b981' }} />
+            <h3 className="text-sm font-semibold" style={{ color: '#10b981' }}>Teilnehmer angelegt</h3>
+          </div>
+          <p className="font-semibold">{result.full_name}</p>
+          <div className="space-y-2">
+            <div>
+              <label className="block text-xs font-medium mb-1" style={{ color: 'var(--muted)' }}>WID-Code</label>
+              <div className="flex items-center gap-2">
+                <span className="flex-1 px-3 py-2 rounded-lg font-mono text-base font-bold tracking-widest"
+                  style={{ background: 'var(--surface-2)', color: 'var(--text)' }}>
+                  {result.participant_code}
+                </span>
+                <button onClick={() => copy(result.participant_code, 'code')}
+                  className="p-2 rounded-lg cursor-pointer transition-colors"
+                  style={{ background: copied === 'code' ? '#10b98120' : 'var(--surface-2)', color: copied === 'code' ? '#10b981' : 'var(--muted)' }}>
+                  {copied === 'code' ? <CheckCheck size={16} /> : <Copy size={16} />}
+                </button>
+              </div>
+            </div>
+            <div>
+              <label className="block text-xs font-medium mb-1" style={{ color: 'var(--muted)' }}>Passwort</label>
+              <div className="flex items-center gap-2">
+                <span className="flex-1 px-3 py-2 rounded-lg font-mono text-base font-bold"
+                  style={{ background: 'var(--surface-2)', color: 'var(--text)' }}>
+                  {result.password}
+                </span>
+                <button onClick={() => copy(result.password, 'pw')}
+                  className="p-2 rounded-lg cursor-pointer transition-colors"
+                  style={{ background: copied === 'pw' ? '#10b98120' : 'var(--surface-2)', color: copied === 'pw' ? '#10b981' : 'var(--muted)' }}>
+                  {copied === 'pw' ? <CheckCheck size={16} /> : <Copy size={16} />}
+                </button>
+              </div>
+            </div>
+          </div>
+          <p className="text-xs" style={{ color: 'var(--muted)' }}>
+            Login unter <span className="font-mono">wid.techstag.de/login</span> → Tab „Teilnehmer" → Code + Passwort eingeben
+          </p>
+        </div>
+      )}
     </div>
   )
 }
