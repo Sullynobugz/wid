@@ -88,6 +88,17 @@ const T: Record<NativeLanguage, {
   },
 }
 
+const DE = {
+  welcome: 'Willkommen bei WID 👋',
+  sub: 'Dieses Programm hilft dir, Deutsch zu lernen und eine Arbeit zu finden. Du hast drei Apps.',
+  codeLabel: 'Dein WID-Code',
+  codeSub: 'Speichere diesen Code — du brauchst ihn in Linguu und JobMate',
+  app1Title: 'WID — dein Zentrum', app1Desc: 'Verfolge deinen Fortschritt und kontaktiere deinen Koordinator',
+  app2Title: 'Linguu — Deutsch lernen', app2Desc: 'Gib deinen WID-Code ein für automatische Synchronisierung',
+  app3Title: 'JobMate — Arbeit finden', app3Desc: 'Verbessere deinen Lebenslauf und bewirb dich auf Stellen',
+  cta: "Los geht's!",
+}
+
 type Translations = typeof T[NativeLanguage]
 const APPS = (t: Translations) => [
   { icon: LayoutDashboard, title: t.app1Title, desc: t.app1Desc, color: 'var(--primary)', bg: 'rgba(37,99,235,0.08)' },
@@ -128,6 +139,7 @@ export default function WelcomeModal({ lang, participantCode, isNewUser }: Props
   const t = T[lang] ?? T.en
   const isRtl = lang === 'ar' || lang === 'ku'
   const apps = APPS(t)
+  const deApps = APPS(DE as unknown as Translations)
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -141,7 +153,13 @@ export default function WelcomeModal({ lang, participantCode, isNewUser }: Props
           <div className="flex items-start justify-between gap-4">
             <div>
               <h2 className="text-xl font-bold" style={{ color: 'var(--text)' }}>{t.welcome}</h2>
+              {t.welcome !== DE.welcome && (
+                <p className="text-xs font-medium" style={{ color: 'var(--muted)', opacity: 0.7 }}>{DE.welcome}</p>
+              )}
               <p className="text-sm mt-1 leading-relaxed" style={{ color: 'var(--muted)' }}>{t.sub}</p>
+              {t.sub !== DE.sub && (
+                <p className="text-xs mt-0.5 leading-relaxed" style={{ color: 'var(--muted)', opacity: 0.65 }}>{DE.sub}</p>
+              )}
             </div>
             <button onClick={dismiss} className="p-1.5 rounded-lg hover:opacity-70 transition-opacity flex-shrink-0"
               style={{ color: 'var(--muted)' }}>
@@ -152,9 +170,12 @@ export default function WelcomeModal({ lang, participantCode, isNewUser }: Props
 
         {/* WID-Code */}
         <div className="mx-6 mb-4 rounded-xl p-4" style={{ background: 'rgba(37,99,235,0.08)', border: '2px solid rgba(37,99,235,0.25)' }}>
-          <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--primary)' }}>
+          <p className="text-xs font-semibold uppercase tracking-widest mb-0.5" style={{ color: 'var(--primary)' }}>
             {t.codeLabel}
           </p>
+          {t.codeLabel !== DE.codeLabel && (
+            <p className="text-xs mb-2" style={{ color: 'var(--primary)', opacity: 0.65 }}>{DE.codeLabel}</p>
+          )}
           <div className="flex items-center gap-3">
             <span className="text-3xl font-bold tracking-widest flex-1"
               style={{ fontFamily: 'Fira Code, monospace', color: 'var(--primary)' }}>
@@ -167,31 +188,44 @@ export default function WelcomeModal({ lang, participantCode, isNewUser }: Props
             </button>
           </div>
           <p className="text-xs mt-2" style={{ color: 'var(--muted)' }}>{t.codeSub}</p>
+          {t.codeSub !== DE.codeSub && (
+            <p className="text-xs mt-0.5" style={{ color: 'var(--muted)', opacity: 0.65 }}>{DE.codeSub}</p>
+          )}
         </div>
 
         {/* 3 Apps */}
         <div className="px-6 pb-2 space-y-2">
-          {apps.map(({ icon: Icon, title, desc, color, bg }) => (
-            <div key={title} className="flex items-start gap-3 p-3 rounded-xl"
-              style={{ background: bg, border: `1px solid ${color}25` }}>
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-                style={{ background: `${color}20` }}>
-                <Icon size={16} style={{ color }} />
+          {apps.map(({ icon: Icon, title, desc, color, bg }, i) => {
+            const deApp = deApps[i]
+            return (
+              <div key={title} className="flex items-start gap-3 p-3 rounded-xl"
+                style={{ background: bg, border: `1px solid ${color}25` }}>
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                  style={{ background: `${color}20` }}>
+                  <Icon size={16} style={{ color }} />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold" style={{ color: 'var(--text)' }}>{title}</p>
+                  {title !== deApp.title && (
+                    <p className="text-xs" style={{ color: 'var(--muted)', opacity: 0.7 }}>{deApp.title}</p>
+                  )}
+                  <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>{desc}</p>
+                  {desc !== deApp.desc && (
+                    <p className="text-xs" style={{ color: 'var(--muted)', opacity: 0.65 }}>{deApp.desc}</p>
+                  )}
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-semibold" style={{ color: 'var(--text)' }}>{title}</p>
-                <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>{desc}</p>
-              </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
 
         {/* CTA */}
         <div className="px-6 py-5">
           <button onClick={dismiss}
-            className="w-full py-3 rounded-xl font-semibold text-sm text-white transition-opacity hover:opacity-90"
+            className="w-full py-3 rounded-xl font-semibold text-sm text-white transition-opacity hover:opacity-90 flex flex-col items-center gap-0"
             style={{ background: 'var(--primary)' }}>
-            {t.cta}
+            <span>{t.cta}</span>
+            {t.cta !== DE.cta && <span className="text-xs opacity-70">{DE.cta}</span>}
           </button>
         </div>
       </div>

@@ -35,6 +35,14 @@ const UI_LABELS: Record<NativeLanguage, {
   ru: { phrases: 'Фразы', vocab: 'Слова', quiz: 'Тест', next: 'Далее', done: 'Готово', back: 'Назад', correct: 'Правильно', wrong: 'Неверно', result: 'Результат', yourScore: 'Ваш результат', xpEarned: 'XP заработано', again: 'Ещё раз', home: 'Главная', listening: 'Слушаю...', tap: 'Нажмите, чтобы перевернуть' },
 }
 
+const DE_LABELS = {
+  phrases: 'Phrasen', vocab: 'Vokabeln', quiz: 'Quiz',
+  next: 'Weiter', done: 'Fertig', back: 'Zurück',
+  correct: 'Richtig', wrong: 'Falsch', result: 'Ergebnis',
+  yourScore: 'Dein Ergebnis', xpEarned: 'XP verdient', again: 'Nochmal', home: 'Startseite',
+  listening: 'Wird abgespielt…', tap: 'Antippen zum Umdrehen',
+}
+
 async function speak(text: string, voice = 'nova') {
   const res = await fetch('/api/openai/tts', {
     method: 'POST',
@@ -131,8 +139,11 @@ function PhrasesMode({ topic, nativeLang, onDone, l }: {
         )}
       </div>
 
-      <button onClick={handleNext} className="btn-primary justify-center w-full">
-        {isLast ? <><Check size={16} /> {l.done}</> : <>{l.next} <ChevronRight size={16} /></>}
+      <button onClick={handleNext} className="btn-primary justify-center w-full flex-col gap-0">
+        <span className="flex items-center gap-1.5">
+          {isLast ? <><Check size={16} /> {l.done}</> : <>{l.next} <ChevronRight size={16} /></>}
+        </span>
+        <span className="text-xs opacity-60">{isLast ? DE_LABELS.done : DE_LABELS.next}</span>
       </button>
     </div>
   )
@@ -188,6 +199,9 @@ function VocabMode({ topic, words, nativeLang, onDone, l }: {
             {word.article && <span className="text-sm px-2 py-0.5 rounded" style={{ background: 'rgba(37,99,235,0.08)', color: 'var(--primary)' }}>{word.article}</span>}
             <p className="text-3xl font-bold" style={{ fontFamily: 'Fira Code, monospace' }}>{word.german}</p>
             <p className="text-xs mt-2" style={{ color: 'var(--muted)' }}>{l.tap}</p>
+            {l.tap !== DE_LABELS.tap && (
+              <p className="text-xs" style={{ color: 'var(--muted)', opacity: 0.65 }}>{DE_LABELS.tap}</p>
+            )}
           </>
         ) : (
           <>
@@ -202,8 +216,11 @@ function VocabMode({ topic, words, nativeLang, onDone, l }: {
         )}
       </button>
 
-      <button onClick={handleNext} className="btn-primary justify-center w-full">
-        {isLast ? <><Check size={16} /> {l.done}</> : <>{l.next} <ChevronRight size={16} /></>}
+      <button onClick={handleNext} className="btn-primary justify-center w-full flex-col gap-0">
+        <span className="flex items-center gap-1.5">
+          {isLast ? <><Check size={16} /> {l.done}</> : <>{l.next} <ChevronRight size={16} /></>}
+        </span>
+        <span className="text-xs opacity-60">{isLast ? DE_LABELS.done : DE_LABELS.next}</span>
       </button>
     </div>
   )
@@ -318,12 +335,21 @@ function ResultScreen({ xp, score, total, topicId, l }: {
           </p>
         )}
         <p className="text-sm" style={{ color: 'var(--muted)' }}>{l.yourScore}</p>
+        {l.yourScore !== DE_LABELS.yourScore && (
+          <p className="text-xs" style={{ color: 'var(--muted)', opacity: 0.65 }}>{DE_LABELS.yourScore}</p>
+        )}
       </div>
-      <div className="px-4 py-2 rounded-full font-bold text-white" style={{ background: 'var(--primary)' }}>
-        +{xp} {l.xpEarned}
+      <div className="text-center">
+        <div className="px-4 py-2 rounded-full font-bold text-white" style={{ background: 'var(--primary)' }}>
+          +{xp} {l.xpEarned}
+        </div>
+        {l.xpEarned !== DE_LABELS.xpEarned && (
+          <p className="text-xs mt-1" style={{ color: 'var(--muted)', opacity: 0.65 }}>+{xp} {DE_LABELS.xpEarned}</p>
+        )}
       </div>
-      <Link href={`/lernen`} className="btn-primary mt-2">
-        {l.home}
+      <Link href={`/lernen`} className="btn-primary mt-2 flex-col gap-0">
+        <span>{l.home}</span>
+        {l.home !== DE_LABELS.home && <span className="text-xs opacity-60">{DE_LABELS.home}</span>}
       </Link>
     </div>
   )
@@ -367,19 +393,22 @@ export default function LessonClient({ topic, words, nativeLang, doneTypes, tota
       {mode === 'menu' && (
         <div className="flex flex-col gap-3">
           {[
-            { id: 'phrases' as const, label: l.phrases, sub: `${topic.phrases.length} Phrasen`, color: 'var(--primary)', xp: XP.phrases },
-            { id: 'vocab' as const, label: l.vocab, sub: `${Math.min(words.length, 15)} Vokabeln`, color: '#16A34A', xp: XP.vocab },
-            { id: 'quiz' as const, label: l.quiz, sub: 'Multiple Choice', color: 'var(--accent)', xp: XP.quiz },
-          ].map(({ id, label, sub, color, xp }) => (
+            { id: 'phrases' as const, label: l.phrases, deLabel: DE_LABELS.phrases, sub: `${topic.phrases.length} Phrasen`, color: 'var(--primary)', xp: XP.phrases },
+            { id: 'vocab' as const, label: l.vocab, deLabel: DE_LABELS.vocab, sub: `${Math.min(words.length, 15)} Vokabeln`, color: '#16A34A', xp: XP.vocab },
+            { id: 'quiz' as const, label: l.quiz, deLabel: DE_LABELS.quiz, sub: 'Multiple Choice', color: 'var(--accent)', xp: XP.quiz },
+          ].map(({ id, label, deLabel, sub, color, xp }, idx) => (
             <button key={id} onClick={() => setMode(id)}
               className="card flex items-center gap-4 cursor-pointer transition-all hover:shadow-md text-left w-full"
               style={{ borderColor: doneTypes.includes(id) ? color : 'var(--border)' }}>
               <div className="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-white shrink-0"
                 style={{ background: color }}>
-                {doneTypes.includes(id) ? <Check size={18} /> : label.charAt(0)}
+                {doneTypes.includes(id) ? <Check size={18} /> : (idx + 1)}
               </div>
               <div className="flex-1">
                 <p className="font-semibold">{label}</p>
+                {label !== deLabel && (
+                  <p className="text-xs" style={{ color: 'var(--muted)', opacity: 0.7 }}>{deLabel}</p>
+                )}
                 <p className="text-sm" style={{ color: 'var(--muted)' }}>{sub}</p>
               </div>
               <span className="text-sm font-medium" style={{ color, fontFamily: 'Fira Code, monospace' }}>
