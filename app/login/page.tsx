@@ -150,7 +150,10 @@ export default function LoginPage() {
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
                 required
-                autoComplete="username"
+                autoComplete={tab === 'participant' ? 'off' : 'email'}
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck={false}
                 style={{ textTransform: tab === 'participant' ? 'uppercase' : 'none' }}
               />
             </div>
@@ -163,9 +166,20 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                autoComplete="current-password"
+                autoComplete={tab === 'participant' ? 'off' : 'current-password'}
               />
             </div>
+
+            {tab === 'participant' && (
+              <button
+                type="button"
+                onClick={() => { setCode('A'); setPassword('1') }}
+                className="w-full text-xs py-2 rounded-lg transition-colors cursor-pointer"
+                style={{ color: 'var(--muted)', border: '1px dashed var(--border)' }}
+              >
+                Test-Login verwenden (A / 1)
+              </button>
+            )}
 
             {error && (
               <p className="text-sm py-2 px-3 rounded-lg" style={{ background: '#FEF2F2', color: '#DC2626' }}>
