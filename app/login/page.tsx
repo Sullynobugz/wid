@@ -150,7 +150,7 @@ export default function LoginPage() {
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
                 required
-                autoComplete={tab === 'participant' ? 'off' : 'email'}
+                autoComplete={tab === 'participant' ? 'new-password' : 'email'}
                 autoCorrect="off"
                 autoCapitalize="off"
                 spellCheck={false}
@@ -166,7 +166,7 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                autoComplete={tab === 'participant' ? 'off' : 'current-password'}
+                autoComplete={tab === 'participant' ? 'new-password' : 'current-password'}
               />
             </div>
 
