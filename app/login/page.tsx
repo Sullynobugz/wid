@@ -35,8 +35,24 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [forgotMode, setForgotMode] = useState(false)
+  const [forgotEmail, setForgotEmail] = useState('')
+  const [forgotSent, setForgotSent] = useState(false)
 
   const l = LABELS[tab]
+
+  async function handleForgotPassword(e: React.FormEvent) {
+    e.preventDefault()
+    setLoading(true)
+    setError('')
+    const supabase = createClient()
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(forgotEmail.trim(), {
+      redirectTo: `${window.location.origin}/auth/reset-password`,
+    })
+    setLoading(false)
+    if (resetError) { setError('Fehler beim Senden. Bitte E-Mail prüfen.'); return }
+    setForgotSent(true)
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -97,6 +113,34 @@ export default function LoginPage() {
 
           <p className="text-xs mb-5 text-center" style={{ color: 'var(--muted)' }}>{l.tab_sub}</p>
 
+          {/* Passwort vergessen — nur Koordinator */}
+          {tab === 'coordinator' && forgotMode ? (
+            <div className="space-y-4">
+              {forgotSent ? (
+                <div className="text-sm py-3 px-4 rounded-lg text-center" style={{ background: '#F0FDF4', color: '#16A34A' }}>
+                  Link gesendet! Bitte E-Mail prüfen.
+                </div>
+              ) : (
+                <form onSubmit={handleForgotPassword} className="space-y-4">
+                  <div>
+                    <label>E-Mail</label>
+                    <input type="email" placeholder="name@einrichtung.de" value={forgotEmail}
+                      onChange={(e) => setForgotEmail(e.target.value)} required autoComplete="email" />
+                  </div>
+                  {error && (
+                    <p className="text-sm py-2 px-3 rounded-lg" style={{ background: '#FEF2F2', color: '#DC2626' }}>{error}</p>
+                  )}
+                  <button type="submit" className="btn-primary w-full justify-center" disabled={loading}>
+                    {loading ? <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : 'Reset-Link senden'}
+                  </button>
+                </form>
+              )}
+              <button onClick={() => { setForgotMode(false); setForgotSent(false); setError('') }}
+                className="w-full text-sm text-center" style={{ color: 'var(--muted)' }}>
+                ← Zurück zum Login
+              </button>
+            </div>
+          ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label>{l.code_label}</label>
@@ -134,7 +178,15 @@ export default function LoginPage() {
                 <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : l.submit}
             </button>
+
+            {tab === 'coordinator' && (
+              <button type="button" onClick={() => { setForgotMode(true); setError(''); setForgotEmail(code) }}
+                className="w-full text-sm text-center" style={{ color: 'var(--muted)' }}>
+                Passwort vergessen?
+              </button>
+            )}
           </form>
+          )}
         </div>
 
         <p className="text-center text-xs mt-6" style={{ color: 'var(--muted)' }}>
