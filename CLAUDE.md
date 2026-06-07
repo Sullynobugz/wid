@@ -1,7 +1,7 @@
 # WID — Willkommen in Deutschland
 
 ## Status
-Aktiv — Pilot-Phase (lokal getestet, funktioniert)
+Aktiv — Live auf wid.techstag.de
 
 ## Was diese App ist
 B2G SaaS-Plattform für private Maßnahme-Träger (Vereine, Bildungsträger). Integriert Sprachlern-Module, Job-Unterstützung und Einbürgerungsvorbereitung für Einwanderer. Kernwert: automatischer Fortschritts-Nachweis (Eigeninitiative) für Koordinatoren/Jobcenter.
@@ -63,35 +63,35 @@ data/content.ts          # 400 Phrasen, 8 Themen (aus Linguu kopiert)
 data/words.ts            # 2000 Vokabeln (aus Linguu kopiert)
 ```
 
-## Was funktioniert (lokal getestet)
+## Was funktioniert (live auf wid.techstag.de)
 - ✅ Login (Koordinator + Teilnehmer)
 - ✅ Koordinator-Dashboard mit KPI-Cards + Teilnehmer-Tabelle
 - ✅ Teilnehmer anlegen (Liste → Credentials-Sheet druckbar)
 - ✅ Passwort zurücksetzen (🔑 Button in Tabelle → Modal)
 - ✅ Lernmodul-Übersicht (8 Themen, multilingual)
 - ✅ Topic-Detail (Phrasen + Vocab + Quiz + XP + Supabase-Sync)
+- ✅ /admin Panel (global_admin: bastian.sb94@gmail.com)
+- ✅ Passwort-vergessen-Flow (Koordinator-Tab) — Redirect-URL noch nicht in Supabase eingetragen (Backlog)
 
 ## Dev-Befehle
 ```bash
 npm run dev -- --port 4000   # Empfohlen: fester Port wegen Browser-Cache
 ```
 
-## ⚠️ Kritisch: Migrations noch nicht ausgeführt
-Folgende SQL-Dateien müssen im Supabase SQL-Editor ausgeführt werden:
-1. `supabase/migrations/002_admin_token_assessment.sql`
-2. `supabase/migrations/003_crossapp_tracking.sql`
-3. `supabase/migrations/004_pipeline_todos_deep_stats.sql`
-4. `supabase/migrations/999_set_global_admin.sql` (einmalig, Voraussetzung: 002 gelaufen)
+## Migrations — alle ausgeführt ✅
+- 002_admin_token_assessment.sql ✅
+- 003_crossapp_tracking.sql ✅
+- 004_pipeline_todos_deep_stats.sql ✅
+- 999_set_global_admin.sql ✅ (bastian.sb94@gmail.com = global_admin)
 
 ## Global Admin — Recovery
 Der einzige Recovery-Pfad ist Supabase Dashboard → SQL Editor → 999_set_global_admin.sql erneut ausführen.
 Kein In-App-Recovery nötig. Zugang nur für bastian.sb94@gmail.com + role = 'global_admin'.
 
 ## Nächste Schritte
-1. **Migrations ausführen** (Supabase Dashboard) — Blocker für alle neuen Features
-2. **global_admin setzen** (999_set_global_admin.sql) — dann /admin erreichbar
-3. **Coolify-Deploy** — GitHub-Push + neue Resource → wid.techstag.de
-4. **E-Mail an Träger** — schriftliche Bestätigung: Juni kostenlos, ab Juli 40€/TN
+1. **Supabase Redirect-URL** — `https://wid.techstag.de/auth/reset-password` unter Authentication → URL Configuration eintragen (Backlog)
+2. **E-Mail an Träger** — schriftliche Bestätigung: Juni kostenlos, ab Juli 40€/TN
+3. **Ersten Teilnehmer anlegen** — Koordinator-Login testen mit echtem Nutzer
 
 ## Entwicklungslog
 | Datum | Was & Warum |
@@ -102,3 +102,4 @@ Kein In-App-Recovery nötig. Zugang nur für bastian.sb94@gmail.com + role = 'gl
 | 2026-06-05 | Deep Stats: MRR, Completion-Rate, Churn, Weekly Activity, Outreach-Pipeline |
 | 2026-06-05 | Teilnehmer-View: WID-Code prominent + /lernen/jobs Seite + Sprachauswahl im Nav |
 | 2026-06-05 | Cross-App-Tracking: Linguu trackProgress() in Quiz + Lesson, JobMate ApplicationModal |
+| 2026-06-07 | Live deployed: wid.techstag.de via Coolify (Hetzner), Webhook aktiv, alle Migrations ausgeführt, global_admin gesetzt, Passwort-vergessen-Flow hinzugefügt |
