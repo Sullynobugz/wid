@@ -190,7 +190,7 @@ export default function LoginPage() {
         </div>
 
         <p className="text-center text-xs mt-6" style={{ color: 'var(--muted)' }}>
-          WID · Mamooon UG · Powered by TechStag · v1.1
+          WID · Mamooon UG · Powered by TechStag · v1.1 · key:{process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.slice(0,8) ?? 'MISSING'}
         </p>
       </div>
     </div>
