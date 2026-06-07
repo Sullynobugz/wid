@@ -22,15 +22,7 @@ export default async function CoordinatorLayout({ children }: { children: React.
 
   const allowedRoles = ['coordinator', 'global_admin']
   if (!profile || !allowedRoles.includes(profile.role)) {
-    return (
-      <div style={{ padding: 32, fontFamily: 'monospace' }}>
-        <p><strong>Debug:</strong> user_id = {user.id}</p>
-        <p>profile = {JSON.stringify(profile)}</p>
-        <p>error = {error?.message ?? 'none'}</p>
-        <p>Bitte dieses SQL in Supabase ausführen und Ergebnis teilen:</p>
-        <pre>select id, role from profiles where id = &apos;{user.id}&apos;;</pre>
-      </div>
-    )
+    redirect('/lernen')
   }
 
   const isGlobalAdmin = profile.role === 'global_admin'

@@ -27,9 +27,9 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  // Eingeloggt auf Login → /coordinator (Rollencheck passiert im Layout)
+  // Eingeloggt auf Login → Root weiterleiten (app/page.tsx prüft die Rolle)
   if (user && path === '/login') {
-    return NextResponse.redirect(new URL('/coordinator', request.url))
+    return NextResponse.redirect(new URL('/', request.url))
   }
 
   return supabaseResponse
