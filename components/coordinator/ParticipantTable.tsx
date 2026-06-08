@@ -14,6 +14,10 @@ function formatDateTime(iso: string | null | undefined) {
   return new Date(iso).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
 }
 
+function currentMonthLabel() {
+  return new Date().toLocaleDateString('de-DE', { month: 'long', year: 'numeric' })
+}
+
 function XpBar({ xp }: { xp: number }) {
   const pct = Math.min((xp / 1000) * 100, 100)
   return (
@@ -32,6 +36,48 @@ function StatPill({ value, label, color }: { value: number | null | undefined; l
       style={{ background: `${color}12`, border: `1px solid ${color}30` }}>
       <span className="text-base font-bold font-mono leading-none" style={{ color }}>{value ?? 0}</span>
       <span className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>{label}</span>
+    </div>
+  )
+}
+
+function MonthlyReport({ participant }: { participant: ParticipantWithStats }) {
+  const lessons = participant.lessons_this_month ?? 0
+  const cvUpdates = participant.cv_updates_this_month ?? 0
+  const jobsSaved = participant.jobs_saved_this_month ?? 0
+  const applications = participant.applications_this_month ?? 0
+  const level = participant.assessment_level ?? 'noch offen'
+
+  return (
+    <div className="rounded-2xl p-4 mb-5"
+      style={{
+        background: 'linear-gradient(135deg, rgba(99,102,241,0.10), rgba(245,158,11,0.10))',
+        border: '1px solid color-mix(in srgb, var(--primary) 28%, var(--border))',
+      }}>
+      <div className="flex items-start justify-between gap-4 mb-4">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--primary)' }}>
+            Monatsreport · {currentMonthLabel()}
+          </p>
+          <p className="text-sm mt-1 max-w-3xl" style={{ color: 'var(--text)' }}>
+            <strong>{participant.full_name}</strong> hat diesen Monat <strong>{lessons}</strong> Linguu-Lektionen absolviert,
+            den Lebenslauf <strong>{cvUpdates}</strong>× erstellt oder überarbeitet,
+            <strong> {jobsSaved}</strong> Jobs als interessant markiert und <strong>{applications}</strong> Bewerbungen dokumentiert.
+            Aktuelles Sprachniveau: <strong>{level}</strong>.
+          </p>
+        </div>
+        <button
+          onClick={() => window.print()}
+          className="btn-secondary text-xs flex-shrink-0 no-print"
+          style={{ padding: '0.45rem 0.75rem' }}>
+          Drucken / PDF
+        </button>
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <StatPill value={lessons} label="Linguu-Lektionen" color="#6366f1" />
+        <StatPill value={cvUpdates} label="CV bearbeitet" color="#10b981" />
+        <StatPill value={jobsSaved} label="Jobs interessant" color="#f59e0b" />
+        <StatPill value={applications} label="Bewerbungen" color="#ef4444" />
+      </div>
     </div>
   )
 }
@@ -93,7 +139,7 @@ export default function ParticipantTable({ participants }: { participants: Parti
         <table className="w-full text-sm">
           <thead>
             <tr style={{ borderBottom: `1px solid var(--border)` }}>
-              {['Name / Code', 'Linguu-Fortschritt', 'Diese Woche', 'Bewerbungen', 'Zuletzt aktiv', ''].map(h => (
+              {['Name / Code', 'Linguu-Fortschritt', 'Diese Woche', 'JobMate-Reporting', 'Zuletzt aktiv', ''].map(h => (
                 <th key={h} className="px-6 py-3 text-left text-xs font-medium" style={{ color: 'var(--muted)' }}>
                   {h}
                 </th>
@@ -150,23 +196,31 @@ export default function ParticipantTable({ participants }: { participants: Parti
                     </div>
                   </td>
 
-                  {/* Bewerbungen */}
+                  {/* JobMate */}
                   <td className="px-6 py-4">
-                    {(p.total_applications ?? 0) > 0 ? (
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-bold" style={{ color: '#10b981' }}>
+                          {p.cv_updates_this_month ?? 0}
+                        </span>
+                        <span className="text-xs" style={{ color: 'var(--muted)' }}>CV</span>
+                      </div>
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-bold" style={{ color: '#f59e0b' }}>
-                          {p.total_applications}
+                          {p.jobs_saved_this_month ?? 0}
                         </span>
-                        <span className="text-xs" style={{ color: 'var(--muted)' }}>
-                          gesamt · {p.applications_this_month ?? 0} Monat
+                        <span className="text-xs" style={{ color: 'var(--muted)' }}>Jobs interessant</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-bold" style={{ color: '#ef4444' }}>
+                          {p.applications_this_month ?? 0}
                         </span>
+                        <span className="text-xs" style={{ color: 'var(--muted)' }}>Bewerbungen Monat</span>
                         {(p.verified_applications ?? 0) > 0 && (
                           <ShieldCheck size={13} style={{ color: '#10b981' }} aria-label="Verifizierte Bewerbungen" />
                         )}
                       </div>
-                    ) : (
-                      <span style={{ color: 'var(--muted)' }}>–</span>
-                    )}
+                    </div>
                   </td>
 
                   {/* Zuletzt aktiv */}
@@ -198,6 +252,7 @@ export default function ParticipantTable({ participants }: { participants: Parti
                 {expanded === p.id && (
                   <tr key={`${p.id}-detail`} style={{ background: 'var(--surface-raised)' }}>
                     <td colSpan={6} className="px-6 py-5">
+                      <MonthlyReport participant={p} />
                       <div className="grid grid-cols-2 gap-6">
 
                         {/* Linguu-Statistik */}

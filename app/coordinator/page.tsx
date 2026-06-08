@@ -43,6 +43,8 @@ export default async function CoordinatorDashboard() {
   // Assessment-Level pro Teilnehmer (neuestes Ergebnis)
   const userIds = (participants ?? []).map(p => p.id)
   let assessmentMap: Record<string, string> = {}
+  let jobsSavedMonthMap: Record<string, number> = {}
+  let cvUpdatesMonthMap: Record<string, number> = {}
   if (userIds.length > 0) {
     const { data: assessments } = await db
       .from('assessment_results')
@@ -54,11 +56,41 @@ export default async function CoordinatorDashboard() {
         if (!assessmentMap[a.user_id]) assessmentMap[a.user_id] = a.level
       }
     }
+
+    const monthStart = new Date()
+    monthStart.setDate(1)
+    monthStart.setHours(0, 0, 0, 0)
+    const { data: savedJobs } = await db
+      .from('jobmate_activity')
+      .select('user_id')
+      .in('user_id', userIds)
+      .eq('activity_type', 'job_saved')
+      .gte('created_at', monthStart.toISOString())
+    if (savedJobs) {
+      for (const row of savedJobs) {
+        jobsSavedMonthMap[row.user_id] = (jobsSavedMonthMap[row.user_id] ?? 0) + 1
+      }
+    }
+
+    const { data: cvUpdates } = await db
+      .from('jobmate_activity')
+      .select('user_id')
+      .in('user_id', userIds)
+      .eq('activity_type', 'cv_upload')
+      .gte('created_at', monthStart.toISOString())
+    if (cvUpdates) {
+      for (const row of cvUpdates) {
+        cvUpdatesMonthMap[row.user_id] = (cvUpdatesMonthMap[row.user_id] ?? 0) + 1
+      }
+    }
   }
 
   const list = (participants ?? []).map(p => ({
     ...p,
+    last_active: p.last_active ?? p.last_linguu_active ?? null,
     assessment_level: assessmentMap[p.id] ?? null,
+    jobs_saved_this_month: jobsSavedMonthMap[p.id] ?? 0,
+    cv_updates_this_month: cvUpdatesMonthMap[p.id] ?? 0,
   }))
   const activeCount = list.filter(p => p.last_active).length
   const totalLessons = list.reduce((s, p) => s + p.lessons_completed, 0)

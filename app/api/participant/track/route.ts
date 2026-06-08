@@ -68,6 +68,20 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true })
   }
 
+  // ── JobMate: Lebenslauf erstellt/überarbeitet ─────────────────
+  if (app === 'jobmate' && type === 'cv_upload') {
+    const { filename, action } = data
+    await db.from('jobmate_activity').insert({
+      user_id: userId,
+      activity_type: 'cv_upload',
+      details: {
+        filename: filename ?? null,
+        action: action ?? 'updated',
+      },
+    })
+    return NextResponse.json({ ok: true })
+  }
+
   // ── JobMate: Bewerbung ────────────────────────────────────────
   if (app === 'jobmate' && type === 'application') {
     const { jobId, jobTitle, company, jobUrl, emailProof, appliedAt } = data

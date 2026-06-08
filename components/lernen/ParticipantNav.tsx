@@ -114,7 +114,12 @@ export default function ParticipantNav({ userName, nativeLang }: Props) {
             >
               W
             </div>
-            Willkommen in Deutschland
+            <div>
+              <span className="leading-none">Willkommen in Deutschland</span>
+              <p className="text-[10px] leading-none mt-0.5 hidden sm:block" style={{ color: 'var(--muted)' }}>
+                WID · Linguu · JobMate
+              </p>
+            </div>
           </Link>
 
           {/* Rechte Seite */}

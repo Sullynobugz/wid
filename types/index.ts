@@ -52,7 +52,10 @@ export interface ParticipantWithStats extends Profile {
   total_xp: number
   lessons_completed: number
   last_active: string | null
+  last_linguu_active?: string | null
   jobs_saved: number
+  jobs_saved_this_month?: number | null
+  cv_updates_this_month?: number | null
   // Linguu Wochenstatistik (aus participant_report View)
   lessons_this_week?: number | null
   lessons_this_month?: number | null
