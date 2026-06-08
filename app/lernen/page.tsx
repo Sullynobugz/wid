@@ -2,69 +2,46 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { GraduationCap, BookOpen, Briefcase, ArrowRight } from 'lucide-react'
+import { ArrowRight, BarChart3, BookOpen, Briefcase, FileText, Landmark, ShieldCheck } from 'lucide-react'
+import type { ComponentType, CSSProperties } from 'react'
 import type { NativeLanguage } from '@/types'
 import WelcomeModal from '@/components/lernen/WelcomeModal'
-
-// ── Übersetzungen ──────────────────────────────────────────────
+import GuideSection from '@/components/lernen/GuideSection'
 
 const GREETINGS: Record<NativeLanguage, string> = {
   ar: 'أهلاً', uk: 'Привіт', es: 'Hola', en: 'Hello',
   ku: 'Merheba', tr: 'Merhaba', pl: 'Cześć', ro: 'Salut', ru: 'Привет',
 }
 
-const CHOICE: Record<NativeLanguage, {
-  q: string; sub: string
-  l1: string; l1sub: string
-  l2: string; l2sub: string
-  l3: string; l3sub: string
-}> = {
-  ar: { q: 'ماذا تريد أن تفعل؟', sub: 'اختر مسارك اليوم',
-    l1: 'التعلم — الحياة في ألمانيا', l1sub: 'عبارات يومية · مفردات · اختبار',
-    l2: 'تعلم اللغة مع Linguu', l2sub: 'تدريبات متقدمة في الألمانية',
-    l3: 'البحث عن عمل مع JobMate', l3sub: 'سيرة ذاتية وتقديم على وظائف' },
-  uk: { q: 'Що ти хочеш зробити?', sub: 'Обери свій шлях сьогодні',
-    l1: 'Навчання — Життя в Німеччині', l1sub: 'Фрази · Слова · Тест',
-    l2: 'Вчи мову з Linguu', l2sub: 'Просунута практика німецької',
-    l3: 'Знайди роботу з JobMate', l3sub: 'Резюме та подача заявок' },
-  es: { q: '¿Qué quieres hacer?', sub: 'Elige tu camino hoy',
-    l1: 'Aprender — Vivir en Alemania', l1sub: 'Frases · Palabras · Quiz',
-    l2: 'Aprende el idioma con Linguu', l2sub: 'Práctica avanzada de alemán',
-    l3: 'Busca trabajo con JobMate', l3sub: 'CV y solicitudes de empleo' },
-  en: { q: 'What would you like to do?', sub: 'Choose your path today',
-    l1: 'Learning — Life in Germany', l1sub: 'Phrases · Vocabulary · Quiz',
-    l2: 'Learn the language with Linguu', l2sub: 'Advanced German practice',
-    l3: 'Find a job with JobMate', l3sub: 'CV and job applications' },
-  ku: { q: 'Tu dixwazî çi bikî?', sub: 'Riya xwe ya îro hilbijêre',
-    l1: 'Fêrbûn — Jiyana li Almanyayê', l1sub: 'Hevok · Peyv · Ceribandin',
-    l2: 'Zimanî bi Linguu hîn bibe', l2sub: 'Pratîka Almanî ya pêşketî',
-    l3: 'Kar bi JobMate bibîne', l3sub: 'CV û serlêdana karî' },
-  tr: { q: 'Ne yapmak istiyorsun?', sub: 'Bugün yolunu seç',
-    l1: "Öğrenme — Almanya'da Hayat", l1sub: 'İfadeler · Kelimeler · Test',
-    l2: "Linguu'yla dil öğren", l2sub: 'Gelişmiş Almanca pratiği',
-    l3: "JobMate'le iş bul", l3sub: 'CV ve iş başvuruları' },
-  pl: { q: 'Co chcesz zrobić?', sub: 'Wybierz swoją ścieżkę',
-    l1: 'Nauka — Życie w Niemczech', l1sub: 'Zwroty · Słówka · Quiz',
-    l2: 'Ucz się języka z Linguu', l2sub: 'Zaawansowana praktyka niemieckiego',
-    l3: 'Znajdź pracę z JobMate', l3sub: 'CV i aplikacje o pracę' },
-  ro: { q: 'Ce vrei să faci?', sub: 'Alege-ţi calea de azi',
-    l1: 'Învăţare — Viaţa în Germania', l1sub: 'Expresii · Cuvinte · Test',
-    l2: 'Învaţă limba cu Linguu', l2sub: 'Practică avansată de germană',
-    l3: 'Găseşte un loc de muncă cu JobMate', l3sub: 'CV şi candidaturi' },
-  ru: { q: 'Что ты хочешь делать?', sub: 'Выбери свой путь сегодня',
-    l1: 'Обучение — Жизнь в Германии', l1sub: 'Фразы · Слова · Тест',
-    l2: 'Учи язык с Linguu', l2sub: 'Продвинутая практика немецкого',
-    l3: 'Найди работу с JobMate', l3sub: 'Резюме и заявки на работу' },
+function monthStartIso() {
+  const date = new Date()
+  date.setDate(1)
+  date.setHours(0, 0, 0, 0)
+  return date.toISOString()
 }
 
-const DE = {
-  q: 'Was möchtest du tun?', sub: 'Wähle deinen Weg für heute',
-  l1: 'Lernen — Alltag in Deutschland', l1sub: 'Phrasen · Vokabeln · Quiz',
-  l2: 'Sprache lernen mit Linguu', l2sub: 'Fortgeschrittene Deutschübungen',
-  l3: 'Arbeit finden mit JobMate', l3sub: 'Lebenslauf & Bewerbungen',
+function StatCard({ label, value, sub, color, icon: Icon }: {
+  label: string
+  value: number | string
+  sub: string
+  color: string
+  icon: ComponentType<{ size?: number; style?: CSSProperties }>
+}) {
+  return (
+    <div className="card flex items-start gap-3">
+      <div className="p-2 rounded-xl flex-shrink-0" style={{ background: `${color}15` }}>
+        <Icon size={18} style={{ color }} />
+      </div>
+      <div>
+        <p className="text-2xl font-bold leading-none" style={{ fontFamily: 'Fira Code, monospace' }}>{value}</p>
+        <p className="text-sm font-medium mt-1">{label}</p>
+        <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>{sub}</p>
+      </div>
+    </div>
+  )
 }
 
-export default async function LernenPage() {
+export default async function TeilnehmerHubPage() {
   const auth = await createClient()
   const { data: { user } } = await auth.auth.getUser()
   if (!user) redirect('/login')
@@ -76,101 +53,136 @@ export default async function LernenPage() {
     .eq('id', user.id)
     .single()
 
-  const lang = (profile?.native_language ?? 'ar') as NativeLanguage
-  const C = CHOICE[lang] ?? CHOICE.en
+  if (!profile) redirect('/login')
+
+  const lang = (profile.native_language ?? 'ar') as NativeLanguage
   const isRtl = lang === 'ar' || lang === 'ku'
-  const code = profile?.participant_code ?? ''
+  const firstName = profile.full_name?.split(' ')[0] ?? ''
+  const code = profile.participant_code ?? ''
+  const monthStart = monthStartIso()
 
-  const { data: progressRows } = await db
-    .from('linguu_progress')
-    .select('xp_earned')
-    .eq('user_id', user.id)
+  const [{ data: progressRows }, { data: jobmateRows }, { data: assessments }] = await Promise.all([
+    db.from('linguu_progress')
+      .select('lesson_type, score, xp_earned, completed_at')
+      .eq('user_id', user.id),
+    db.from('jobmate_activity')
+      .select('activity_type, created_at')
+      .eq('user_id', user.id),
+    db.from('assessment_results')
+      .select('level, created_at')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(1),
+  ])
 
-  const totalXp = progressRows?.reduce((s, r) => s + r.xp_earned, 0) ?? 0
-  const firstName = profile?.full_name?.split(' ')[0] ?? ''
+  const progress = progressRows ?? []
+  const jobmate = jobmateRows ?? []
+  const monthlyProgress = progress.filter(row => row.completed_at >= monthStart)
+  const monthlyJobmate = jobmate.filter(row => row.created_at >= monthStart)
+  const quizScores = progress
+    .filter(row => row.lesson_type === 'quiz' && row.score != null)
+    .map(row => row.score as number)
+  const avgQuiz = quizScores.length
+    ? Math.round(quizScores.reduce((sum, score) => sum + score, 0) / quizScores.length)
+    : 0
+  const totalXp = progress.reduce((sum, row) => sum + (row.xp_earned ?? 0), 0)
+  const latestLevel = assessments?.[0]?.level ?? 'offen'
+  const cvUpdates = monthlyJobmate.filter(row => row.activity_type === 'cv_upload').length
+  const jobsSaved = monthlyJobmate.filter(row => row.activity_type === 'job_saved').length
+  const applications = monthlyJobmate.filter(row => row.activity_type === 'application').length
 
-  const PATHS = [
+  const actions = [
     {
-      href: '/lernen/themen',
-      icon: GraduationCap,
-      color: '#6366f1',
-      title: C.l1,
-      titleDE: DE.l1,
-      sub: C.l1sub,
-      subDE: DE.l1sub,
-    },
-    {
-      href: `/lernen/linguu`,
+      href: '/lernen/linguu',
+      title: 'Linguu öffnen',
+      sub: 'Deutsch lernen, Assessment machen, Fortschritt synchronisieren',
       icon: BookOpen,
       color: '#10b981',
-      title: C.l2,
-      titleDE: DE.l2,
-      sub: C.l2sub,
-      subDE: DE.l2sub,
     },
     {
       href: '/lernen/jobs',
+      title: 'JobMate öffnen',
+      sub: 'Lebenslauf verbessern, Jobs speichern, Bewerbungen dokumentieren',
       icon: Briefcase,
       color: '#f59e0b',
-      title: C.l3,
-      titleDE: DE.l3,
-      sub: C.l3sub,
-      subDE: DE.l3sub,
+    },
+    {
+      href: '/lernen/einbuergerung',
+      title: 'Einbürgerung & Orientierung',
+      sub: 'Informationen, Vorbereitung und Beispiel-Fragen',
+      icon: Landmark,
+      color: '#6366f1',
     },
   ]
 
   return (
     <div className="space-y-6">
-      {profile?.participant_code && (
-        <WelcomeModal lang={lang} participantCode={code} isNewUser={totalXp === 0} />
-      )}
+      {code && <WelcomeModal lang={lang} participantCode={code} isNewUser={progress.length === 0 && jobmate.length === 0} />}
 
-      {/* Begrüßung */}
-      <div>
-        <h1 className="text-xl font-semibold" dir={isRtl ? 'rtl' : 'ltr'}>
-          {GREETINGS[lang]}, {firstName} 👋
-        </h1>
-        <p className="text-sm" style={{ color: 'var(--muted)' }}>
-          Willkommen, {firstName}!
-        </p>
-        {totalXp > 0 && (
-          <div className="flex items-center gap-3 mt-2">
-            <div className="flex-1 h-1.5 rounded-full" style={{ background: 'var(--border)' }}>
-              <div className="h-full rounded-full" style={{ width: `${Math.min((totalXp / 2000) * 100, 100)}%`, background: 'var(--primary)' }} />
-            </div>
-            <span className="text-sm font-medium tabular-nums" style={{ color: 'var(--primary)', fontFamily: 'Fira Code, monospace' }}>
-              {totalXp} XP
-            </span>
+      <div className="rounded-2xl p-5"
+        style={{ background: 'linear-gradient(135deg, rgba(79,70,229,0.12), rgba(245,158,11,0.10))', border: '1px solid var(--border)' }}>
+        <div className="flex items-start gap-4">
+          <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-white font-bold text-lg"
+            style={{ background: 'var(--primary)' }}>
+            W
           </div>
-        )}
+          <div className="flex-1">
+            <h1 className="text-xl font-semibold" dir={isRtl ? 'rtl' : 'ltr'}>
+              {GREETINGS[lang] ?? GREETINGS.en}, {firstName} 👋
+            </h1>
+            <p className="text-sm mt-1" style={{ color: 'var(--muted)' }}>
+              Das ist deine WID-Schaltzentrale. Hier siehst du deinen Fortschritt aus Linguu und JobMate.
+            </p>
+            {code && (
+              <div className="inline-flex items-center gap-2 mt-3 px-3 py-1.5 rounded-full text-xs"
+                style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+                <ShieldCheck size={13} style={{ color: 'var(--success)' }} />
+                <span style={{ color: 'var(--muted)' }}>WID-Code</span>
+                <span className="font-mono font-bold" style={{ color: 'var(--primary)' }}>{code}</span>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
-      {/* Was möchtest du tun? */}
-      <div>
-        <div className="mb-4">
-          <p className="text-base font-semibold" dir={isRtl ? 'rtl' : 'ltr'}>{C.q}</p>
-          <p className="text-xs" style={{ color: 'var(--muted)' }}>{DE.q}</p>
-        </div>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard icon={BookOpen} color="#6366f1" value={monthlyProgress.length} label="Linguu-Lektionen" sub="diesen Monat" />
+        <StatCard icon={FileText} color="#10b981" value={cvUpdates} label="CV bearbeitet" sub="via JobMate" />
+        <StatCard icon={Briefcase} color="#f59e0b" value={jobsSaved} label="Jobs interessant" sub="diesen Monat" />
+        <StatCard icon={BarChart3} color="#ef4444" value={applications} label="Bewerbungen" sub="dokumentiert" />
+      </div>
 
-        <div className="space-y-3">
-          {PATHS.map(({ href, icon: Icon, color, title, titleDE, sub, subDE }) => (
-            <Link key={href} href={href}
-              className="card flex items-center gap-4 cursor-pointer transition-all hover:shadow-md"
-              style={{ textDecoration: 'none', borderLeft: `3px solid ${color}` }}>
-              <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
-                style={{ background: `${color}15` }}>
-                <Icon size={22} style={{ color }} />
-              </div>
-              <div className="flex-1 min-w-0" dir={isRtl ? 'rtl' : 'ltr'}>
-                <p className="font-semibold text-sm">{title}</p>
-                <p className="text-xs" style={{ color: 'var(--muted)', opacity: 0.75 }}>{titleDE}</p>
-                <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>{sub}</p>
-                <p className="text-xs" style={{ color: 'var(--muted)', opacity: 0.65 }}>{subDE}</p>
-              </div>
-              <ArrowRight size={16} className="flex-shrink-0" style={{ color: 'var(--muted)' }} />
-            </Link>
-          ))}
-        </div>
+      <div className="card">
+        <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--primary)' }}>
+          Dein aktueller Nachweis
+        </p>
+        <p className="text-sm leading-relaxed">
+          Du hast insgesamt <strong>{progress.length}</strong> Linguu-Aktivitäten mit <strong>{totalXp} XP</strong> abgeschlossen,
+          dein aktuelles Sprachniveau ist <strong>{latestLevel}</strong>
+          {avgQuiz > 0 ? <> und dein Quiz-Durchschnitt liegt bei <strong>{avgQuiz}%</strong></> : null}.
+          In JobMate wurden diesen Monat <strong>{jobsSaved}</strong> interessante Jobs und <strong>{applications}</strong> Bewerbungen dokumentiert.
+        </p>
+      </div>
+
+      {code && <GuideSection lang={lang} participantCode={code} />}
+
+      <div className="space-y-3">
+        <p className="text-base font-semibold">Was möchtest du als Nächstes tun?</p>
+        {actions.map(({ href, title, sub, icon: Icon, color }) => (
+          <Link key={href} href={href}
+            className="card flex items-center gap-4 transition-all hover:shadow-md"
+            style={{ textDecoration: 'none', borderLeft: `4px solid ${color}` }}>
+            <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
+              style={{ background: `${color}15` }}>
+              <Icon size={22} style={{ color }} />
+            </div>
+            <div className="flex-1">
+              <p className="font-semibold text-sm">{title}</p>
+              <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>{sub}</p>
+            </div>
+            <ArrowRight size={16} style={{ color: 'var(--muted)' }} />
+          </Link>
+        ))}
       </div>
     </div>
   )

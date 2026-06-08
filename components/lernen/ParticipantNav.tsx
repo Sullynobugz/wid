@@ -4,31 +4,31 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { BookOpen, Briefcase, LogOut, Globe, Check, GraduationCap } from 'lucide-react'
+import { BookOpen, Briefcase, LogOut, Globe, Check, LayoutDashboard, Landmark } from 'lucide-react'
 import type { NativeLanguage } from '@/types'
 import { NATIVE_LANGUAGE_NATIVE } from '@/types'
 
-const MODULE_LABELS: Record<NativeLanguage, { themen: string; linguu: string; jobs: string }> = {
-  ar: { themen: 'تعلّم', linguu: 'لينغو', jobs: 'عمل' },
-  uk: { themen: 'Навчання', linguu: 'Лінгу', jobs: 'Робота' },
-  es: { themen: 'Aprender', linguu: 'Linguu', jobs: 'Trabajo' },
-  en: { themen: 'Learn', linguu: 'Linguu', jobs: 'Jobs' },
-  ku: { themen: 'Fêrbûn', linguu: 'Linguu', jobs: 'Kar' },
-  tr: { themen: 'Öğren', linguu: 'Linguu', jobs: 'İş' },
-  pl: { themen: 'Nauka', linguu: 'Linguu', jobs: 'Praca' },
-  ro: { themen: 'Învaţă', linguu: 'Linguu', jobs: 'Muncă' },
-  ru: { themen: 'Учёба', linguu: 'Лингуу', jobs: 'Работа' },
+const MODULE_LABELS: Record<NativeLanguage, { hub: string; linguu: string; jobs: string; einbuergerung: string }> = {
+  ar: { hub: 'المركز', linguu: 'لينغو', jobs: 'عمل', einbuergerung: 'الجنسية' },
+  uk: { hub: 'Центр', linguu: 'Лінгу', jobs: 'Робота', einbuergerung: 'Громадянство' },
+  es: { hub: 'Centro', linguu: 'Linguu', jobs: 'Trabajo', einbuergerung: 'Ciudadanía' },
+  en: { hub: 'Hub', linguu: 'Linguu', jobs: 'Jobs', einbuergerung: 'Citizenship' },
+  ku: { hub: 'Navend', linguu: 'Linguu', jobs: 'Kar', einbuergerung: 'Welatîbûn' },
+  tr: { hub: 'Merkez', linguu: 'Linguu', jobs: 'İş', einbuergerung: 'Vatandaşlık' },
+  pl: { hub: 'Centrum', linguu: 'Linguu', jobs: 'Praca', einbuergerung: 'Obywatelstwo' },
+  ro: { hub: 'Centru', linguu: 'Linguu', jobs: 'Muncă', einbuergerung: 'Cetățenie' },
+  ru: { hub: 'Центр', linguu: 'Лингуу', jobs: 'Работа', einbuergerung: 'Гражданство' },
 }
 
-const DE_NAV = { themen: 'Lernen', linguu: 'Sprache', jobs: 'Arbeit' }
+const DE_NAV = { hub: 'Übersicht', linguu: 'Sprache', jobs: 'Arbeit', einbuergerung: 'Einbürgerung' }
 const ALL_LANGUAGES: NativeLanguage[] = ['ar', 'uk', 'es', 'en', 'ku', 'tr', 'pl', 'ro', 'ru']
 
 const PILLARS = [
   {
-    href: '/lernen/themen',
-    key: 'themen' as const,
+    href: '/lernen',
+    key: 'hub' as const,
     productName: 'WID',
-    icon: GraduationCap,
+    icon: LayoutDashboard,
     color: '#6366f1',
   },
   {
@@ -44,6 +44,13 @@ const PILLARS = [
     productName: 'JobMate',
     icon: Briefcase,
     color: '#f59e0b',
+  },
+  {
+    href: '/lernen/einbuergerung',
+    key: 'einbuergerung' as const,
+    productName: 'Test',
+    icon: Landmark,
+    color: '#8b5cf6',
   },
 ]
 
@@ -82,12 +89,7 @@ export default function ParticipantNav({ userName, nativeLang }: Props) {
   }
 
   function isActive(href: string) {
-    if (href === '/lernen/themen')
-      return pathname === '/lernen/themen' ||
-        (pathname.startsWith('/lernen/') &&
-          !pathname.startsWith('/lernen/linguu') &&
-          !pathname.startsWith('/lernen/jobs') &&
-          pathname !== '/lernen')
+    if (href === '/lernen') return pathname === '/lernen'
     return pathname === href || pathname.startsWith(href + '/')
   }
 
@@ -101,7 +103,7 @@ export default function ParticipantNav({ userName, nativeLang }: Props) {
         className="border-b"
         style={{ borderColor: 'var(--border)' }}
       >
-        <div className="max-w-2xl mx-auto px-4 h-11 flex items-center justify-between">
+        <div className="max-w-4xl mx-auto px-4 h-11 flex items-center justify-between">
           {/* Logo */}
           <Link
             href="/lernen"
@@ -182,8 +184,8 @@ export default function ParticipantNav({ userName, nativeLang }: Props) {
       </div>
 
       {/* ── Row 2: Pillar switcher ── */}
-      <div className="max-w-2xl mx-auto px-3 py-2.5">
-        <div className="grid grid-cols-3 gap-2">
+      <div className="max-w-4xl mx-auto px-3 py-2.5">
+        <div className="grid grid-cols-4 gap-2">
           {PILLARS.map(({ href, key, productName, icon: Icon, color }) => {
             const active = isActive(href)
             const nativeLabel = labels[key]

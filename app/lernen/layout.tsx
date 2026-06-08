@@ -24,7 +24,7 @@ export default async function LernenLayout({ children }: { children: React.React
         userName={profile.full_name}
         nativeLang={profile.native_language as NativeLanguage}
       />
-      <main className="flex-1 max-w-2xl mx-auto w-full px-4 py-6">
+      <main className="flex-1 max-w-4xl mx-auto w-full px-4 py-6">
         {children}
       </main>
     </div>

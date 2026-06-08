@@ -4,7 +4,7 @@
 Aktiv — Live auf wid.techstag.de
 
 ## Was diese App ist
-B2G SaaS-Plattform für private Maßnahme-Träger (Vereine, Bildungsträger). Integriert Sprachlern-Module, Job-Unterstützung und Einbürgerungsvorbereitung für Einwanderer. Kernwert: automatischer Fortschritts-Nachweis (Eigeninitiative) für Koordinatoren/Jobcenter.
+B2G SaaS-Plattform für private Maßnahme-Träger (Vereine, Bildungsträger). WID ist die zentrale Schaltzentrale für Teilnehmer, Koordinatoren und Global Admins. Linguu liefert Sprachlern-Fortschritt, JobMate liefert CV-/Job-/Bewerbungsaktivität, WID konsolidiert beides zu Fortschrittsübersichten und One-Click-Reporting.
 
 **Erster Kunde**: Privater Verein, 50 Teilnehmer. Pilot Juni kostenlos → ab Juli 40€/Teilnehmer/Monat = 2.000€/Monat recurring.
 
@@ -12,7 +12,6 @@ B2G SaaS-Plattform für private Maßnahme-Träger (Vereine, Bildungsträger). In
 - **Framework**: Next.js 16 (App Router, `proxy.ts` statt `middleware.ts`)
 - **Auth + DB**: Supabase
 - **Styling**: Tailwind CSS + CSS Variables
-- **KI**: Anthropic API (claude-sonnet-4-6) — serverseitig via `/api/claude`
 - **Deployment**: Coolify (Hetzner 167.233.30.113) → wid.techstag.de
 
 ## ⚠️ Kritisches Auth-Pattern
@@ -44,21 +43,18 @@ app/
 ├── login/                          # Teilnehmer (Code+PW) + Koordinator (Email+PW)
 ├── coordinator/                    # Koordinator-Dashboard + Teilnehmer-Verwaltung
 │   └── teilnehmer/                 # Teilnehmer anlegen → Credentials-Sheet
-├── lernen/                         # Teilnehmer-App: Lernmodule
-│   └── [topic]/                    # Phrasen + Vocab + Quiz + Fortschritt-Sync
+├── lernen/                         # Teilnehmer-Hub: Fortschritt + App-Links + Einbürgerung
+│   └── einbuergerung/              # Orientierung + Beispiel-Fragen
 └── api/
     ├── coordinator/participants/   # Teilnehmer anlegen
     ├── coordinator/reset-password/ # Passwort zurücksetzen
-    ├── progress/                   # Fortschritt speichern
-    └── claude/                     # Anthropic-Proxy
+    └── participant/track/          # Cross-App-Tracking von Linguu/JobMate
 
 lib/supabase/client.ts   # Browser-Client (anon)
 lib/supabase/server.ts   # Server-Client (anon, SSR) — NUR für auth.getUser()
 lib/supabase/admin.ts    # Admin-Client (service role, plain) — für alle DB-Queries
 lib/passwords.ts         # generateParticipantCode(), generatePassword(), codeToEmail()
 components/coordinator/ParticipantTable.tsx  # Tabelle + Passwort-Reset-Modal
-data/content.ts          # 400 Phrasen, 8 Themen (aus Linguu kopiert)
-data/words.ts            # 2000 Vokabeln (aus Linguu kopiert)
 ```
 
 ## Was funktioniert (live auf wid.techstag.de)
@@ -66,8 +62,9 @@ data/words.ts            # 2000 Vokabeln (aus Linguu kopiert)
 - ✅ Koordinator-Dashboard mit KPI-Cards + Teilnehmer-Tabelle
 - ✅ Teilnehmer anlegen (Liste → Credentials-Sheet druckbar)
 - ✅ Passwort zurücksetzen (🔑 Button in Tabelle → Modal)
-- ✅ Lernmodul-Übersicht (8 Themen, multilingual)
-- ✅ Topic-Detail (Phrasen + Vocab + Quiz + XP + Supabase-Sync)
+- ✅ Teilnehmer-Hub mit eigenem Fortschritt aus Linguu und JobMate
+- ✅ Einbürgerungstest-/Orientierungsbereich
+- ✅ One-Click-Reporting für Koordinatoren
 - ✅ /admin Panel (global_admin: bastian.sb94@gmail.com)
 - ✅ Passwort-vergessen-Flow (Koordinator-Tab) — Redirect-URL noch nicht in Supabase eingetragen (Backlog)
 
@@ -86,8 +83,8 @@ npm run dev -- --port 4000   # Empfohlen: fester Port wegen Browser-Cache
 Der einzige Recovery-Pfad ist Supabase Dashboard → SQL Editor → 999_set_global_admin.sql erneut ausführen.
 Kein In-App-Recovery nötig. Zugang nur für bastian.sb94@gmail.com + role = 'global_admin'.
 
-## ⚠️ Kein Audio in WID
-`app/lernen/[topic]/LessonClient.tsx` hat **kein TTS/Whisper** mehr. Audio-Logik (speak(), Volume2-Icon, Mikrofon-Button) wurde bewusst entfernt — Linguu ist die dedizierte Audio-App. Die OpenAI-Proxies (`/api/openai/tts/` und `/api/openai/whisper/`) wurden gelöscht. Nicht wieder einbauen.
+## ⚠️ WID bleibt Hub, kein Linguu-Klon
+WID enthält keine internen Sprachlektionen, kein Phrasen-/Vokabeltraining und keine Audio-/KI-Proxies. Lernen passiert in Linguu, Jobs/CV/Bewerbungen passieren in JobMate. WID zeigt Teilnehmern den eigenen Fortschritt, Koordinatoren den Fortschritt aller Teilnehmer und Global Admins die Gesamtansicht.
 
 ## ⚠️ GuideSection — permanente Anleitung
 `components/lernen/GuideSection.tsx` ist eine dauerhaft sichtbare, einklappbare Anleitung auf der Hub-Seite (`app/lernen/page.tsx`). Erklärt den 3-App-Flow (WID → Linguu → JobMate) in allen 9 Sprachen bilingual. Zeigt den WID-Code mit Copy-Button direkt beim Linguu-Schritt. Wird nur gerendert wenn `profile?.participant_code` vorhanden ist.
@@ -108,3 +105,4 @@ Kein In-App-Recovery nötig. Zugang nur für bastian.sb94@gmail.com + role = 'gl
 | 2026-06-05 | Cross-App-Tracking: Linguu trackProgress() in Quiz + Lesson, JobMate ApplicationModal |
 | 2026-06-07 | Live deployed: wid.techstag.de via Coolify (Hetzner), Webhook aktiv, alle Migrations ausgeführt, global_admin gesetzt, Passwort-vergessen-Flow hinzugefügt |
 | 2026-06-07 | Audio aus LessonClient entfernt (gehört zu Linguu, nicht WID). OpenAI-Proxies gelöscht. GuideSection hinzugefügt (permanente 3-App-Anleitung auf Hub-Seite, einklappbar, bilingual) |
+| 2026-06-08 | WID auf Hub/Reporting fokussiert: interne Linguu-Lernmodule, Progress-Route und Claude-Proxy entfernt; Einbürgerung als eigener Info-Bereich ergänzt |
