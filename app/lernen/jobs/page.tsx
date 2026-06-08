@@ -35,7 +35,7 @@ export default async function JobsPage() {
   const lang = (profile?.native_language ?? 'en') as NativeLanguage
   const L = LABELS[lang] ?? LABELS.en
   const code = profile?.participant_code ?? ''
-  const jobmateUrl = `https://jobmate.techstag.de`
+  const jobmateUrl = `https://jobmate.techstag.de/?wid=${encodeURIComponent(code)}`
 
   return (
     <div className="space-y-6">
