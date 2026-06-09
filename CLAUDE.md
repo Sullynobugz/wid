@@ -55,6 +55,8 @@ lib/supabase/server.ts   # Server-Client (anon, SSR) — NUR für auth.getUser()
 lib/supabase/admin.ts    # Admin-Client (service role, plain) — für alle DB-Queries
 lib/passwords.ts         # generateParticipantCode(), generatePassword(), codeToEmail()
 components/coordinator/ParticipantTable.tsx  # Tabelle + Passwort-Reset-Modal
+components/lernen/FloatingTranslator.tsx     # Simultanübersetzer (überall im Lernbereich)
+data/einbuergerung/questions.json           # 460 BAMF-Fragen (offizieller Fragenkatalog)
 ```
 
 ## Was funktioniert (live auf wid.techstag.de)
@@ -108,3 +110,4 @@ WID enthält keine internen Sprachlektionen, kein Phrasen-/Vokabeltraining und k
 | 2026-06-08 | WID auf Hub/Reporting fokussiert: interne Linguu-Lernmodule, Progress-Route und Claude-Proxy entfernt; Einbürgerung als eigener Info-Bereich ergänzt |
 | 2026-06-08/09 | Dark Mode Override aus globals.css entfernt — alle drei Apps (WID/Linguu/JobMate) bleiben fix im Light Theme für visuelle Einheitlichkeit. Demo-Teilnehmer Max Mustermann (WID-DEMO1) via Supabase Service Role angelegt mit realistischen Linguu + JobMate Aktivitätsdaten. |
 | 2026-06-09 | Einbürgerungstest-Trainer: 460 BAMF-Fragen (questions.json + README) von linguu/src/Einbuergerung/ nach wid/data/einbuergerung/ verschoben. page.tsx komplett neu als interaktiver Quiz (Bundesland-Auswahl → 30 allgemein + 3 Bundesland-Fragen → Ergebnis). |
+| 2026-06-09 | ParticipantNav: Flaggen-Emojis bei Sprachauswahl, prominentere Pill-Schaltfläche, Account-Name mittig in Top-Bar. FloatingTranslator: neues `components/lernen/FloatingTranslator.tsx` + API-Routes /api/translate, /api/tts, /api/whisper. Im Lernen-Layout eingebunden. |
