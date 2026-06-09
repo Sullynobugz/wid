@@ -106,3 +106,4 @@ WID enthält keine internen Sprachlektionen, kein Phrasen-/Vokabeltraining und k
 | 2026-06-07 | Live deployed: wid.techstag.de via Coolify (Hetzner), Webhook aktiv, alle Migrations ausgeführt, global_admin gesetzt, Passwort-vergessen-Flow hinzugefügt |
 | 2026-06-07 | Audio aus LessonClient entfernt (gehört zu Linguu, nicht WID). OpenAI-Proxies gelöscht. GuideSection hinzugefügt (permanente 3-App-Anleitung auf Hub-Seite, einklappbar, bilingual) |
 | 2026-06-08 | WID auf Hub/Reporting fokussiert: interne Linguu-Lernmodule, Progress-Route und Claude-Proxy entfernt; Einbürgerung als eigener Info-Bereich ergänzt |
+| 2026-06-08/09 | Dark Mode Override aus globals.css entfernt — alle drei Apps (WID/Linguu/JobMate) bleiben fix im Light Theme für visuelle Einheitlichkeit. Demo-Teilnehmer Max Mustermann (WID-DEMO1) via Supabase Service Role angelegt mit realistischen Linguu + JobMate Aktivitätsdaten. |
