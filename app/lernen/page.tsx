@@ -109,7 +109,7 @@ export default async function TeilnehmerHubPage() {
     {
       href: '/lernen/einbuergerung',
       title: 'Einbürgerung & Orientierung',
-      sub: 'Informationen, Vorbereitung und Beispiel-Fragen',
+      sub: '460 BAMF-Fragen · echter Testmodus mit Bundesland-Auswahl',
       icon: Landmark,
       color: '#6366f1',
     },
