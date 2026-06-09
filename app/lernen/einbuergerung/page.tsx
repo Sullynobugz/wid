@@ -57,10 +57,12 @@ function shuffle<T>(arr: T[]): T[] {
   return a
 }
 
+const all = questionsData as Question[]
+const IMAGE_QUESTION_COUNT = all.filter(q => q.type === 'image').length
+
 function buildQuiz(blCode: string): Question[] {
-  const all = questionsData as Question[]
-  const general = shuffle(all.filter(q => q.part === 'Allgemein')).slice(0, 30)
-  const landQuestions = shuffle(all.filter(q => q.id.startsWith(blCode))).slice(0, 3)
+  const general = shuffle(all.filter(q => q.part === 'Allgemein' && q.type !== 'image')).slice(0, 30)
+  const landQuestions = shuffle(all.filter(q => q.id.startsWith(blCode) && q.type !== 'image')).slice(0, 3)
   return shuffle([...general, ...landQuestions])
 }
 
@@ -315,6 +317,18 @@ export default function EinbuergerungPage() {
             </p>
           </div>
         </div>
+      </div>
+
+      {/* Hinweis Bildfragen */}
+      <div
+        className="rounded-xl px-4 py-3 flex items-start gap-3 text-sm"
+        style={{ background: '#FEF3C7', border: '1px solid #FCD34D' }}
+      >
+        <span className="text-lg leading-none flex-shrink-0">🖼️</span>
+        <p style={{ color: '#92400E' }}>
+          <strong>{IMAGE_QUESTION_COUNT} Bildfragen</strong> (Wappen, Flaggen, Landkarten, Stimmzettel) sind noch nicht eingebunden —
+          die zugehörigen PNG-Bilder fehlen noch. Alle anderen Fragen funktionieren normal.
+        </p>
       </div>
 
       {/* Voraussetzungen */}
