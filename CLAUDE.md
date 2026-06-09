@@ -44,7 +44,7 @@ app/
 ├── coordinator/                    # Koordinator-Dashboard + Teilnehmer-Verwaltung
 │   └── teilnehmer/                 # Teilnehmer anlegen → Credentials-Sheet
 ├── lernen/                         # Teilnehmer-Hub: Fortschritt + App-Links + Einbürgerung
-│   └── einbuergerung/              # Orientierung + Beispiel-Fragen
+│   └── einbuergerung/              # Interaktiver Test-Trainer (33 Fragen, Bundesland-Filter)
 └── api/
     ├── coordinator/participants/   # Teilnehmer anlegen
     ├── coordinator/reset-password/ # Passwort zurücksetzen
@@ -63,7 +63,7 @@ components/coordinator/ParticipantTable.tsx  # Tabelle + Passwort-Reset-Modal
 - ✅ Teilnehmer anlegen (Liste → Credentials-Sheet druckbar)
 - ✅ Passwort zurücksetzen (🔑 Button in Tabelle → Modal)
 - ✅ Teilnehmer-Hub mit eigenem Fortschritt aus Linguu und JobMate
-- ✅ Einbürgerungstest-/Orientierungsbereich
+- ✅ Einbürgerungstest-Trainer (460 BAMF-Fragen, 33er-Simulation, Bundesland-Filter, Ergebnis-Screen)
 - ✅ One-Click-Reporting für Koordinatoren
 - ✅ /admin Panel (global_admin: bastian.sb94@gmail.com)
 - ✅ Passwort-vergessen-Flow (Koordinator-Tab) — Redirect-URL noch nicht in Supabase eingetragen (Backlog)
@@ -107,3 +107,4 @@ WID enthält keine internen Sprachlektionen, kein Phrasen-/Vokabeltraining und k
 | 2026-06-07 | Audio aus LessonClient entfernt (gehört zu Linguu, nicht WID). OpenAI-Proxies gelöscht. GuideSection hinzugefügt (permanente 3-App-Anleitung auf Hub-Seite, einklappbar, bilingual) |
 | 2026-06-08 | WID auf Hub/Reporting fokussiert: interne Linguu-Lernmodule, Progress-Route und Claude-Proxy entfernt; Einbürgerung als eigener Info-Bereich ergänzt |
 | 2026-06-08/09 | Dark Mode Override aus globals.css entfernt — alle drei Apps (WID/Linguu/JobMate) bleiben fix im Light Theme für visuelle Einheitlichkeit. Demo-Teilnehmer Max Mustermann (WID-DEMO1) via Supabase Service Role angelegt mit realistischen Linguu + JobMate Aktivitätsdaten. |
+| 2026-06-09 | Einbürgerungstest-Trainer: 460 BAMF-Fragen (questions.json + README) von linguu/src/Einbuergerung/ nach wid/data/einbuergerung/ verschoben. page.tsx komplett neu als interaktiver Quiz (Bundesland-Auswahl → 30 allgemein + 3 Bundesland-Fragen → Ergebnis). |
