@@ -91,6 +91,76 @@ WID enthält keine internen Sprachlektionen, kein Phrasen-/Vokabeltraining und k
 ## ⚠️ GuideSection — permanente Anleitung
 `components/lernen/GuideSection.tsx` ist eine dauerhaft sichtbare, einklappbare Anleitung auf der Hub-Seite (`app/lernen/page.tsx`). Erklärt den 3-App-Flow (WID → Linguu → JobMate) in allen 9 Sprachen bilingual. Zeigt den WID-Code mit Copy-Button direkt beim Linguu-Schritt. Wird nur gerendert wenn `profile?.participant_code` vorhanden ist.
 
+## 🤖 Fable-5-Task — 3-App-Plattform Sprint
+
+> Dieser Block ist für eine Claude Fable 5 Session vorbereitet.
+> Session starten mit: `cd ~/projects/wid && claude --add-dir ~/projects/linguu --add-dir ~/projects/jobmate`
+> **Lies zuerst alle drei CLAUDE.md-Dateien vollständig, dann starte mit Phase 1.**
+
+### Kontext: Die 3-App-Plattform
+
+Drei Apps, ein Ökosystem — alle live auf Hetzner via Coolify:
+- **WID** (`wid.techstag.de`) — Hub: Auth, Koordinator-Dashboard, Teilnehmer-Verwaltung, Fortschrittsreporting. Einzige App mit Backend (Supabase).
+- **Linguu** (`linguu.techstag.de`) — Deutsch lernen (8 Themen, ~400 Phrasen, 2000 Vokabeln, Whisper-Aussprache). Kein Backend — localStorage.
+- **JobMate** (`jobmate.techstag.de`) — CV verbessern, Jobs suchen, Bewerbungen tracken. Kein Backend — localStorage.
+
+**Geschäftskontext**: Erster Kunde (privater Verein, ~50 Teilnehmer). Pilot Juni kostenlos → ab Juli 40€/Teilnehmer/Monat = **2.000€/Monat recurring**. Qualität und Zuverlässigkeit der Integration sind umsatzrelevant.
+
+**Cross-App-Tracking** läuft bereits: `widTracking.ts` in Linguu und JobMate meldet Aktivität an `/api/participant/track` in WID. Der WID-Code muss aber noch manuell eingegeben werden — das ist die größte UX-Lücke.
+
+---
+
+### Phase 1 — URL-Param-Handoff (höchste Priorität)
+
+Das ist die kritischste offene Integration. Heute müssen Teilnehmer ihren WID-Code in Linguu und JobMate manuell eintippen. Das soll wegfallen.
+
+**Ziel**: WID generiert Links zu Linguu/JobMate mit dem WID-Code als URL-Parameter. Linguu/JobMate lesen den Parameter beim ersten Besuch und speichern ihn in localStorage — Teilnehmer kommen an und ihr Code ist bereits gesetzt.
+
+**Konkret:**
+
+1. **WID — Link-Generierung** (`app/lernen/page.tsx` und `components/lernen/GuideSection.tsx`): Buttons/Links zu Linguu und JobMate um `?wid=<participant_code>` erweitern. `participant_code` liegt im Profil vor (`profile?.participant_code`).
+
+2. **Linguu — Code empfangen** (`src/lib/widTracking.ts` + Onboarding): Beim App-Start URL-Param `?wid=` auslesen. Falls vorhanden → in localStorage unter dem bestehenden Key für den WID-Code speichern und `widTracking` initialisieren. Kein Onboarding-Schritt nötig, passiert im Hintergrund.
+
+3. **JobMate — Code empfangen** (analog zu Linguu): `?wid=`-Param beim Start in `store/appStore.ts` oder einem Initialisierungs-Hook auslesen und persistieren. Alle nachfolgenden Tracking-Calls nutzen ihn automatisch.
+
+4. Testen: Simuliere den kompletten Flow — WID-Teilnehmer-Hub → Link klicken → Linguu öffnet mit Code vorausgefüllt → Aktivität wird in WID sichtbar.
+
+---
+
+### Phase 2 — Linguu Features (`~/projects/linguu`)
+
+5. **Quiz: Audio nach falscher Antwort** — nach einer falschen Antwort die korrekte Übersetzung in der Muttersprache vorlesen. `AudioControls`-Komponente unterstützt das bereits (TTS-Proxy unter `/api/openai/tts` ist aktiv). Sprache kommt aus dem Onboarding-State (Muttersprache des Nutzers).
+
+6. **Sprechen-Flow prominenter** — Whisper/Mikrofon ist der stärkste USP, aber UI-technisch noch nicht sichtbar genug. Im Lektions-Bereich den Aufnahme-Button größer und erklärender gestalten. Kurzer Onboarding-Hinweis beim ersten Mal: "Sprich nach — wir überprüfen deine Aussprache."
+
+---
+
+### Phase 3 — JobMate Features (`~/projects/jobmate`)
+
+7. **Distanz-Radar** — Leaflet-Karte auf der Jobs-Seite mit km-Kreisen. Koordinaten aus dem Geocoding-API-Response (`/api/geocode`) liegen bereits vor. Leaflet via `react-leaflet` einbinden, Nutzer-Standort als Mittelpunkt, Jobs als Pins, 15/30/50km-Kreise.
+
+8. **CV-Export als PDF** — Verbesserter Lebenslauf (nach Claude-Chat) als PDF herunterladen. `react-pdf` oder `@react-pdf/renderer` einbinden. Einfaches A4-Template mit Name, Kontakt, Abschnitten — kein komplexes Design nötig, Funktion vor Form.
+
+---
+
+### Phase 4 — Cross-App-Tracking Verifikation
+
+9. Nachdem Phase 1 implementiert ist: End-to-End-Test mit Demo-Teilnehmer `WID-DEMO1` (Max Mustermann, existiert in Supabase). Flow: Linguu-Aktivität tracken → WID-Dashboard prüfen ob Eintrag erscheint → dasselbe für JobMate. Falls Daten nicht ankommen: `api/participant/track` Route debuggen.
+
+10. WID Koordinator-Dashboard: sicherstellen dass Linguu-Fortschritt und JobMate-Bewerbungsaktivität pro Teilnehmer korrekt aggregiert angezeigt werden. Basis dafür liegt in `004_pipeline_todos_deep_stats.sql` und den Tracking-Routes.
+
+---
+
+### Constraints — bitte einhalten
+
+- **Dark Mode bleibt deaktiviert** in allen drei Apps — bewusste Entscheidung (Linguu nutzt hardcodierte Hex-Werte, visuelle Einheitlichkeit für Präsentationen). Nicht wieder einbauen.
+- **WID bleibt Hub** — kein Lern-Content, keine Audio-Proxies, keine Vokabel-Daten in WID einbauen. Lernen passiert in Linguu, Jobs in JobMate.
+- **Supabase Auth-Pattern** in WID strikt einhalten: `createClient` nur für `auth.getUser()`, `createAdminClient` für alle DB-Queries.
+- Nach jeder Phase committen (selektives Staging, keine `.env`-Dateien).
+
+---
+
 ## Nächste Schritte
 1. **Supabase Redirect-URL** — `https://wid.techstag.de/auth/reset-password` unter Authentication → URL Configuration eintragen (Backlog)
 2. **E-Mail an Träger** — schriftliche Bestätigung: Juni kostenlos, ab Juli 40€/TN
