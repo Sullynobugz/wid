@@ -93,18 +93,20 @@ export default async function TeilnehmerHubPage() {
 
   const actions = [
     {
-      href: '/lernen/linguu',
+      href: `https://linguu.techstag.de?wid=${code}`,
       title: 'Linguu öffnen',
       sub: 'Deutsch lernen, Assessment machen, Fortschritt synchronisieren',
       icon: BookOpen,
       color: '#10b981',
+      external: true,
     },
     {
-      href: '/lernen/jobs',
+      href: `https://jobmate.techstag.de?wid=${code}`,
       title: 'JobMate öffnen',
       sub: 'Lebenslauf verbessern, Jobs speichern, Bewerbungen dokumentieren',
       icon: Briefcase,
       color: '#f59e0b',
+      external: true,
     },
     {
       href: '/lernen/einbuergerung',
@@ -112,6 +114,7 @@ export default async function TeilnehmerHubPage() {
       sub: '460 BAMF-Fragen · echter Testmodus mit Bundesland-Auswahl',
       icon: Landmark,
       color: '#6366f1',
+      external: false,
     },
   ]
 
@@ -168,21 +171,34 @@ export default async function TeilnehmerHubPage() {
 
       <div className="space-y-3">
         <p className="text-base font-semibold">Was möchtest du als Nächstes tun?</p>
-        {actions.map(({ href, title, sub, icon: Icon, color }) => (
-          <Link key={href} href={href}
-            className="card flex items-center gap-4 transition-all hover:shadow-md"
-            style={{ textDecoration: 'none', borderLeft: `4px solid ${color}` }}>
-            <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
-              style={{ background: `${color}15` }}>
-              <Icon size={22} style={{ color }} />
-            </div>
-            <div className="flex-1">
-              <p className="font-semibold text-sm">{title}</p>
-              <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>{sub}</p>
-            </div>
-            <ArrowRight size={16} style={{ color: 'var(--muted)' }} />
-          </Link>
-        ))}
+        {actions.map(({ href, title, sub, icon: Icon, color, external }) => {
+          const inner = (
+            <>
+              <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
+                style={{ background: `${color}15` }}>
+                <Icon size={22} style={{ color }} />
+              </div>
+              <div className="flex-1">
+                <p className="font-semibold text-sm">{title}</p>
+                <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>{sub}</p>
+              </div>
+              <ArrowRight size={16} style={{ color: 'var(--muted)' }} />
+            </>
+          )
+          return external ? (
+            <a key={href} href={href} target="_blank" rel="noopener noreferrer"
+              className="card flex items-center gap-4 transition-all hover:shadow-md"
+              style={{ textDecoration: 'none', borderLeft: `4px solid ${color}` }}>
+              {inner}
+            </a>
+          ) : (
+            <Link key={href} href={href}
+              className="card flex items-center gap-4 transition-all hover:shadow-md"
+              style={{ textDecoration: 'none', borderLeft: `4px solid ${color}` }}>
+              {inner}
+            </Link>
+          )
+        })}
       </div>
     </div>
   )

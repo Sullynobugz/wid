@@ -84,6 +84,8 @@ export default function GuideSection({ lang, participantCode }: Props) {
 
   const t = T[lang] ?? T.en
   const isRtl = lang === 'ar' || lang === 'ku'
+  const linguuUrl = `https://linguu.techstag.de?wid=${participantCode}`
+  const jobmateUrl = `https://jobmate.techstag.de?wid=${participantCode}`
 
   function copyCode() {
     navigator.clipboard.writeText(participantCode)
@@ -134,6 +136,12 @@ export default function GuideSection({ lang, participantCode }: Props) {
             {copied ? <Check size={16} /> : <Copy size={16} />}
           </button>
         </div>
+        <a href={linguuUrl} target="_blank" rel="noopener noreferrer"
+          className="mt-2 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all"
+          style={{ background: 'rgba(22,163,74,0.15)', color: '#16a34a', textDecoration: 'none', border: '1.5px solid rgba(22,163,74,0.3)' }}>
+          <BookOpen size={14} />
+          Linguu öffnen →
+        </a>
       ),
     },
     {
@@ -146,7 +154,14 @@ export default function GuideSection({ lang, participantCode }: Props) {
       titleDE: DE.step3Title,
       body: t.step3Body,
       bodyDE: DE.step3Body,
-      extra: null,
+      extra: (
+        <a href={jobmateUrl} target="_blank" rel="noopener noreferrer"
+          className="mt-3 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all"
+          style={{ background: 'rgba(245,158,11,0.12)', color: '#d97706', textDecoration: 'none', border: '1.5px solid rgba(245,158,11,0.3)', display: 'flex' }}>
+          <Briefcase size={14} />
+          JobMate öffnen →
+        </a>
+      ),
     },
   ]
 
