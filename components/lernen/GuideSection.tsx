@@ -117,6 +117,7 @@ export default function GuideSection({ lang, participantCode }: Props) {
       body: t.step2Body,
       bodyDE: DE.step2Body,
       extra: (
+        <>
         <div className="mt-3 rounded-xl p-3 flex items-center gap-3"
           style={{ background: 'rgba(22,163,74,0.1)', border: '1.5px solid rgba(22,163,74,0.3)' }}>
           <div>
@@ -142,6 +143,7 @@ export default function GuideSection({ lang, participantCode }: Props) {
           <BookOpen size={14} />
           Linguu öffnen →
         </a>
+        </>
       ),
     },
     {
