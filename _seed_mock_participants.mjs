@@ -17,6 +17,13 @@ const DAY = 86400000
 const iso = (ms) => new Date(ms).toISOString()
 const atHM = (ms, h, m) => { const d = new Date(ms); d.setHours(h, m, 0, 0); return d.getTime() }
 
+const supabaseUrl = pick('NEXT_PUBLIC_SUPABASE_URL')
+if (!supabaseUrl.includes('localhost') && !supabaseUrl.includes('127.0.0.1')) {
+  console.warn('⚠️  Seed läuft gegen Remote-Supabase. Demo-Passwörter (demo1234) sind schwach.')
+  console.warn('   Nur für lokale Demos gedacht. Fortfahren? (Ctrl+C zum Abbrechen, Enter zum Bestätigen)')
+  await new Promise(r => process.stdin.once('data', r))
+}
+
 const { data: orgs } = await db.from('organizations').select('id, name')
 const pilot = orgs?.find(o => o.name === 'Pilotverein')
 if (!pilot) { console.error('Pilotverein nicht gefunden'); process.exit(1) }
