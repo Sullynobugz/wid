@@ -87,10 +87,9 @@ export default function LoginPage() {
       .eq('id', authData.user.id)
       .single()
 
-    router.refresh()
-    if (profile?.role === 'global_admin') router.push('/admin')
-    else if (profile?.role === 'coordinator') router.push('/coordinator')
-    else router.push('/lernen')
+    // Root-Page (app/page.tsx) prüft die Rolle serverseitig mit Admin-Client
+    // und redirected korrekt → keine RLS-Abhängigkeit im Browser-Client nötig
+    router.push('/')
   }
 
   return (

@@ -24,8 +24,9 @@ export const getParticipant = cache(async (): Promise<Participant | null> => {
   const db = createAdminClient()
   const { data: profile } = await db
     .from('profiles')
-    .select('full_name, native_language, participant_code')
+    .select('full_name, native_language, participant_code, role')
     .eq('id', user.id)
+    .eq('role', 'participant')
     .single()
 
   if (!profile) return null

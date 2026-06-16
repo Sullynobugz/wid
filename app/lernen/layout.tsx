@@ -6,7 +6,7 @@ import { FloatingTranslator } from '@/components/lernen/FloatingTranslator'
 
 export default async function LernenLayout({ children }: { children: React.ReactNode }) {
   const participant = await getParticipant()
-  if (!participant) redirect('/login')
+  if (!participant) redirect('/')
 
   return (
     <ParticipantProvider
