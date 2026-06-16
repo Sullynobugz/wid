@@ -69,23 +69,17 @@ export async function GET(req: Request) {
   if (!user) return NextResponse.json({ error: 'Nicht angemeldet' }, { status: 401 })
 
   const db = createAdminClient()
-  const { data: coord } = await db.from('profiles').select('role').eq('id', user.id).single()
-  if (!coord || !['coordinator', 'global_admin'].includes(coord.role)) {
-    return NextResponse.json({ error: 'Keine Berechtigung' }, { status: 403 })
-  }
-
-  const participant_id = new URL(req.url).searchParams.get('participant_id')
-
   const { data: coord } = await db.from('profiles').select('role, organization_id').eq('id', user.id).single()
   if (!coord || !['coordinator', 'global_admin'].includes(coord.role)) {
     return NextResponse.json({ error: 'Keine Berechtigung' }, { status: 403 })
   }
 
+  const participant_id = new URL(req.url).searchParams.get('participant_id')
+  if (!participant_id) return NextResponse.json({ error: 'participant_id fehlt' }, { status: 400 })
+
   const { data: participant } = await db
-    .from('profiles').select('organization_id, role').eq('id', participant_id).single()
-  if (!participant || participant.role !== 'participant') {
-    return NextResponse.json({ error: 'Teilnehmer nicht gefunden' }, { status: 404 })
-  }
+    .from('profiles').select('organization_id, role').eq('id', participant_id).eq('role', 'participant').single()
+  if (!participant) return NextResponse.json({ error: 'Teilnehmer nicht gefunden' }, { status: 404 })
   if (coord.role !== 'global_admin' && participant.organization_id !== coord.organization_id) {
     return NextResponse.json({ error: 'Keine Berechtigung' }, { status: 403 })
   }
