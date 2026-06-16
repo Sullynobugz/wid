@@ -10,7 +10,7 @@ export async function PATCH(req: NextRequest) {
   const body = await req.json()
   const { native_language } = body
 
-  const valid = ['ar', 'uk', 'es', 'en', 'ku', 'tr', 'pl', 'ro', 'ru']
+  const valid = ['ar', 'uk', 'es', 'en', 'ku', 'tr', 'pl', 'ro', 'ru', 'de']
   if (native_language && !valid.includes(native_language)) {
     return NextResponse.json({ error: 'Invalid language' }, { status: 400 })
   }

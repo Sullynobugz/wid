@@ -119,7 +119,7 @@ export default function AdminPage() {
         <div>
           <h1 className="text-2xl font-bold">Global Admin</h1>
           <p className="text-sm mt-0.5" style={{ color: 'var(--muted)' }}>
-            WID · Linguu · JobMate — zentrales Cockpit
+            Enter · Linguu · JobMate — zentrales Cockpit
           </p>
         </div>
         <button onClick={load} className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
@@ -969,7 +969,7 @@ function TestTab({ orgs: initialOrgs }: { orgs: OrgStat[] }) {
           </h2>
         </div>
         <p className="text-sm" style={{ color: 'var(--muted)' }}>
-          WID-Code + Passwort werden automatisch generiert und angezeigt.
+          Enter-Code + Passwort werden automatisch generiert und angezeigt.
         </p>
 
         <div className="grid grid-cols-2 gap-3">
@@ -1053,7 +1053,7 @@ function TestTab({ orgs: initialOrgs }: { orgs: OrgStat[] }) {
           <p className="font-semibold">{result.full_name}</p>
           <div className="space-y-2">
             <div>
-              <label className="block text-xs font-medium mb-1" style={{ color: 'var(--muted)' }}>WID-Code</label>
+              <label className="block text-xs font-medium mb-1" style={{ color: 'var(--muted)' }}>Enter-Code</label>
               <div className="flex items-center gap-2">
                 <span className="flex-1 px-3 py-2 rounded-lg font-mono text-base font-bold tracking-widest"
                   style={{ background: 'var(--surface-2)', color: 'var(--text)' }}>

@@ -1,12 +1,13 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { BookOpen, Briefcase, LogOut, Check, LayoutDashboard, Landmark, User } from 'lucide-react'
 import type { NativeLanguage } from '@/types'
 import { NATIVE_LANGUAGE_NATIVE } from '@/types'
+import { useParticipant } from './ParticipantProvider'
 
 const LANGUAGE_FLAGS: Record<NativeLanguage, string> = {
   ar: '🇸🇦',
@@ -18,42 +19,47 @@ const LANGUAGE_FLAGS: Record<NativeLanguage, string> = {
   pl: '🇵🇱',
   ro: '🇷🇴',
   ru: '🇷🇺',
+  de: '🇩🇪',
 }
 
 const MODULE_LABELS: Record<NativeLanguage, { hub: string; linguu: string; jobs: string; einbuergerung: string }> = {
-  ar: { hub: 'المركز', linguu: 'لينغو', jobs: 'عمل', einbuergerung: 'الجنسية' },
-  uk: { hub: 'Центр', linguu: 'Лінгу', jobs: 'Робота', einbuergerung: 'Громадянство' },
-  es: { hub: 'Centro', linguu: 'Linguu', jobs: 'Trabajo', einbuergerung: 'Ciudadanía' },
-  en: { hub: 'Hub', linguu: 'Linguu', jobs: 'Jobs', einbuergerung: 'Citizenship' },
-  ku: { hub: 'Navend', linguu: 'Linguu', jobs: 'Kar', einbuergerung: 'Welatîbûn' },
-  tr: { hub: 'Merkez', linguu: 'Linguu', jobs: 'İş', einbuergerung: 'Vatandaşlık' },
-  pl: { hub: 'Centrum', linguu: 'Linguu', jobs: 'Praca', einbuergerung: 'Obywatelstwo' },
-  ro: { hub: 'Centru', linguu: 'Linguu', jobs: 'Muncă', einbuergerung: 'Cetățenie' },
-  ru: { hub: 'Центр', linguu: 'Лингуу', jobs: 'Работа', einbuergerung: 'Гражданство' },
+  ar: { hub: 'المركز', linguu: 'لينغو', jobs: 'عمل', einbuergerung: 'توجيه' },
+  uk: { hub: 'Центр', linguu: 'Лінгу', jobs: 'Робота', einbuergerung: 'Орієнтація' },
+  es: { hub: 'Centro', linguu: 'Linguu', jobs: 'Trabajo', einbuergerung: 'Orientación' },
+  en: { hub: 'Hub', linguu: 'Linguu', jobs: 'Jobs', einbuergerung: 'Orientation' },
+  ku: { hub: 'Navend', linguu: 'Linguu', jobs: 'Kar', einbuergerung: 'Rêberî' },
+  tr: { hub: 'Merkez', linguu: 'Linguu', jobs: 'İş', einbuergerung: 'Rehberlik' },
+  pl: { hub: 'Centrum', linguu: 'Linguu', jobs: 'Praca', einbuergerung: 'Orientacja' },
+  ro: { hub: 'Centru', linguu: 'Linguu', jobs: 'Muncă', einbuergerung: 'Orientare' },
+  ru: { hub: 'Центр', linguu: 'Лингуу', jobs: 'Работа', einbuergerung: 'Ориентация' },
+  de: { hub: 'Übersicht', linguu: 'Sprache', jobs: 'Arbeit', einbuergerung: 'Orientierung' },
 }
 
-const DE_NAV = { hub: 'Übersicht', linguu: 'Sprache', jobs: 'Arbeit', einbuergerung: 'Einbürgerung' }
-const ALL_LANGUAGES: NativeLanguage[] = ['ar', 'uk', 'es', 'en', 'ku', 'tr', 'pl', 'ro', 'ru']
+const DE_NAV = { hub: 'Übersicht', linguu: 'Sprache', jobs: 'Arbeit', einbuergerung: 'Orientierung' }
+const ALL_LANGUAGES: NativeLanguage[] = ['de', 'ar', 'uk', 'es', 'en', 'ku', 'tr', 'pl', 'ro', 'ru']
 
 const PILLARS = [
-  { href: '/lernen',              key: 'hub' as const,           productName: 'WID',       icon: LayoutDashboard, color: '#6366f1' },
-  { href: '/lernen/linguu',       key: 'linguu' as const,        productName: 'Linguu',    icon: BookOpen,        color: '#10b981' },
-  { href: '/lernen/jobs',         key: 'jobs' as const,          productName: 'JobMate',   icon: Briefcase,       color: '#f59e0b' },
-  { href: '/lernen/einbuergerung',key: 'einbuergerung' as const, productName: 'Test',      icon: Landmark,        color: '#8b5cf6' },
+  { href: '/lernen',                 tabKey: null,        key: 'hub' as const,           productName: 'Enter',     icon: LayoutDashboard, color: '#6366f1' },
+  { href: '/lernen?tab=linguu',      tabKey: 'linguu',    key: 'linguu' as const,        productName: 'Linguu',    icon: BookOpen,        color: '#10b981' },
+  { href: '/lernen?tab=jobs',        tabKey: 'jobs',      key: 'jobs' as const,          productName: 'JobMate',   icon: Briefcase,       color: '#f59e0b' },
+  { href: '/lernen/einbuergerung',   tabKey: null,        key: 'einbuergerung' as const, productName: 'Orientierung', icon: Landmark,        color: '#8b5cf6' },
 ]
 
 interface Props {
   userName: string
-  nativeLang: NativeLanguage
 }
 
-export default function ParticipantNav({ userName, nativeLang }: Props) {
+export default function ParticipantNav({ userName }: Props) {
+  const { nativeLang, setNativeLang } = useParticipant()
   const pathname = usePathname()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const currentTab = searchParams.get('tab') ?? ''
   const [showLangMenu, setShowLangMenu] = useState(false)
   const [saving, setSaving] = useState(false)
   const labels = MODULE_LABELS[nativeLang] ?? MODULE_LABELS.en
-  const currentFlag = LANGUAGE_FLAGS[nativeLang]
+  const currentFlag = LANGUAGE_FLAGS[nativeLang] ?? '🌐'
+  const currentLanguageLabel = NATIVE_LANGUAGE_NATIVE[nativeLang] ?? 'Sprache'
 
   async function signOut() {
     const supabase = createClient()
@@ -63,22 +69,24 @@ export default function ParticipantNav({ userName, nativeLang }: Props) {
 
   async function changeLanguage(lang: NativeLanguage) {
     if (lang === nativeLang || saving) return
-    setSaving(true)
     setShowLangMenu(false)
+    setNativeLang(lang)          // optimistisch: schaltet sofort alle Consumer um
+    setSaving(true)
     try {
+      // im Hintergrund persistieren — kein router.refresh(), also kein Server-Roundtrip
       await fetch('/api/profile', {
         method: 'PATCH',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ native_language: lang }),
       })
-      router.refresh()
     } finally {
       setSaving(false)
     }
   }
 
-  function isActive(href: string) {
-    if (href === '/lernen') return pathname === '/lernen'
+  function isActive(tabKey: string | null, href: string) {
+    if (tabKey) return pathname === '/lernen' && currentTab === tabKey
+    if (href === '/lernen') return pathname === '/lernen' && !currentTab
     return pathname === href || pathname.startsWith(href + '/')
   }
 
@@ -101,9 +109,9 @@ export default function ParticipantNav({ userName, nativeLang }: Props) {
               className="w-6 h-6 rounded-md flex items-center justify-center text-white text-xs font-bold"
               style={{ background: 'var(--primary)' }}
             >
-              W
+              E
             </div>
-            <span className="hidden sm:inline leading-none">WID</span>
+            <span className="hidden sm:inline leading-none">Enter</span>
           </Link>
 
           {/* Mitte: Account-Name */}
@@ -132,9 +140,26 @@ export default function ParticipantNav({ userName, nativeLang }: Props) {
                   border: `1.5px solid ${showLangMenu ? 'var(--primary)' : 'var(--border)'}`,
                 }}
               >
-                <span className="text-lg leading-none">{currentFlag}</span>
-                <span className="hidden sm:inline text-sm">{NATIVE_LANGUAGE_NATIVE[nativeLang]}</span>
-                <span className="text-xs" style={{ color: 'var(--muted)' }}>▾</span>
+                <span
+                  aria-hidden="true"
+                  className="inline-flex h-6 w-6 items-center justify-center rounded-md text-base leading-none"
+                  style={{
+                    background: 'rgba(255,255,255,0.72)',
+                    fontFamily: 'Apple Color Emoji, Segoe UI Emoji, Noto Color Emoji, sans-serif',
+                  }}
+                >
+                  {currentFlag}
+                </span>
+                <span className="hidden sm:inline text-sm">{currentLanguageLabel}</span>
+                {saving ? (
+                  <span
+                    className="inline-block rounded-full animate-spin"
+                    style={{ width: 12, height: 12, border: '2px solid var(--border)', borderTopColor: 'var(--primary)' }}
+                    aria-label="Speichert…"
+                  />
+                ) : (
+                  <span className="text-xs" style={{ color: 'var(--muted)' }}>▾</span>
+                )}
               </button>
 
               {showLangMenu && (
@@ -160,7 +185,12 @@ export default function ParticipantNav({ userName, nativeLang }: Props) {
                             color: lang === nativeLang ? 'var(--primary)' : 'var(--text)',
                           }}
                         >
-                          <span className="text-xl leading-none w-7 text-center">{LANGUAGE_FLAGS[lang]}</span>
+                          <span
+                            className="text-xl leading-none w-7 text-center"
+                            style={{ fontFamily: 'Apple Color Emoji, Segoe UI Emoji, Noto Color Emoji, sans-serif' }}
+                          >
+                            {LANGUAGE_FLAGS[lang] ?? '🌐'}
+                          </span>
                           <span className="flex-1 font-medium">{NATIVE_LANGUAGE_NATIVE[lang]}</span>
                           {lang === nativeLang && <Check size={14} style={{ color: 'var(--primary)', flexShrink: 0 }} />}
                         </button>
@@ -187,8 +217,8 @@ export default function ParticipantNav({ userName, nativeLang }: Props) {
       {/* ── Row 2: Pillar switcher ── */}
       <div className="max-w-4xl mx-auto px-3 py-2.5">
         <div className="grid grid-cols-4 gap-2">
-          {PILLARS.map(({ href, key, productName, icon: Icon, color }) => {
-            const active = isActive(href)
+          {PILLARS.map(({ href, tabKey, key, productName, icon: Icon, color }) => {
+            const active = isActive(tabKey, href)
             const nativeLabel = labels[key]
             const deLabel = DE_NAV[key]
             const showDe = nativeLabel !== deLabel

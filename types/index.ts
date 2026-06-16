@@ -1,8 +1,8 @@
-export type Role = 'coordinator' | 'participant'
+export type Role = 'coordinator' | 'participant' | 'global_admin'
 
 export type Language = 'ar' | 'uk' | 'es' | 'en' | 'tr' | 'pl' | 'ro' | 'ru' | 'de' | 'ku'
 
-export type NativeLanguage = 'ar' | 'uk' | 'es' | 'en' | 'ku' | 'tr' | 'pl' | 'ro' | 'ru'
+export type NativeLanguage = 'ar' | 'uk' | 'es' | 'en' | 'ku' | 'tr' | 'pl' | 'ro' | 'ru' | 'de'
 
 export interface Organization {
   id: string
@@ -82,6 +82,7 @@ export const NATIVE_LANGUAGE_LABELS: Record<NativeLanguage, string> = {
   pl: 'Polnisch',
   ro: 'Rumänisch',
   ru: 'Russisch',
+  de: 'Deutsch',
 }
 
 export const NATIVE_LANGUAGE_NATIVE: Record<NativeLanguage, string> = {
@@ -94,4 +95,5 @@ export const NATIVE_LANGUAGE_NATIVE: Record<NativeLanguage, string> = {
   pl: 'Polski',
   ro: 'Română',
   ru: 'Русский',
+  de: 'Deutsch',
 }

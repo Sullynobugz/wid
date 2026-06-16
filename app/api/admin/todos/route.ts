@@ -5,7 +5,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 async function guardAdmin() {
   const auth = await createClient()
   const { data: { user } } = await auth.auth.getUser()
-  if (!user || user.email !== 'bastian.sb94@gmail.com') return null
+  if (!user) return null
   const db = createAdminClient()
   const { data: p } = await db.from('profiles').select('role').eq('id', user.id).single()
   if (p?.role !== 'global_admin') return null

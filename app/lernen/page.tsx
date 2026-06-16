@@ -1,28 +1,38 @@
-import { createClient } from '@/lib/supabase/server'
-import { createAdminClient } from '@/lib/supabase/admin'
-import { redirect } from 'next/navigation'
+'use client'
+
 import Link from 'next/link'
+import { useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { ArrowRight, BarChart3, BookOpen, Briefcase, FileText, Landmark, ShieldCheck } from 'lucide-react'
 import type { ComponentType, CSSProperties } from 'react'
 import type { NativeLanguage } from '@/types'
+import { useParticipant } from '@/components/lernen/ParticipantProvider'
 import WelcomeModal from '@/components/lernen/WelcomeModal'
+import AttendanceClock from '@/components/lernen/AttendanceClock'
 import GuideSection from '@/components/lernen/GuideSection'
+import { LinguuTab } from '@/components/lernen/tabs/LinguuTab'
+import { JobsTab } from '@/components/lernen/tabs/JobsTab'
 
 const GREETINGS: Record<NativeLanguage, string> = {
   ar: 'أهلاً', uk: 'Привіт', es: 'Hola', en: 'Hello',
-  ku: 'Merheba', tr: 'Merhaba', pl: 'Cześć', ro: 'Salut', ru: 'Привет',
+  ku: 'Merheba', tr: 'Merhaba', pl: 'Cześć', ro: 'Salut', ru: 'Привет', de: 'Hallo',
 }
 
-function monthStartIso() {
-  const date = new Date()
-  date.setDate(1)
-  date.setHours(0, 0, 0, 0)
-  return date.toISOString()
+interface Stats {
+  monthlyLinguu: number
+  cvUpdates: number
+  jobsSaved: number
+  applications: number
+  totalProgress: number
+  totalJobmate: number
+  totalXp: number
+  latestLevel: string
+  avgQuiz: number
 }
 
 function StatCard({ label, value, sub, color, icon: Icon }: {
   label: string
-  value: number | string
+  value: number | null
   sub: string
   color: string
   icon: ComponentType<{ size?: number; style?: CSSProperties }>
@@ -33,7 +43,14 @@ function StatCard({ label, value, sub, color, icon: Icon }: {
         <Icon size={18} style={{ color }} />
       </div>
       <div>
-        <p className="text-2xl font-bold leading-none" style={{ fontFamily: 'Fira Code, monospace' }}>{value}</p>
+        {value === null ? (
+          <div
+            className="rounded animate-pulse"
+            style={{ width: 32, height: 24, background: 'var(--surface-2)' }}
+          />
+        ) : (
+          <p className="text-2xl font-bold leading-none" style={{ fontFamily: 'Fira Code, monospace' }}>{value}</p>
+        )}
         <p className="text-sm font-medium mt-1">{label}</p>
         <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>{sub}</p>
       </div>
@@ -41,55 +58,35 @@ function StatCard({ label, value, sub, color, icon: Icon }: {
   )
 }
 
-export default async function TeilnehmerHubPage() {
-  const auth = await createClient()
-  const { data: { user } } = await auth.auth.getUser()
-  if (!user) redirect('/login')
+// Linguu- und Jobs-Tabs landen auf /lernen?tab=linguu / ?tab=jobs — rein clientseitig,
+// kein Server-Roundtrip. Der Router wechselt nur die Search-Params, nicht die Route.
+export default function TeilnehmerHubPage() {
+  const searchParams = useSearchParams()
+  const tab = searchParams.get('tab')
 
-  const db = createAdminClient()
-  const { data: profile } = await db
-    .from('profiles')
-    .select('native_language, full_name, participant_code')
-    .eq('id', user.id)
-    .single()
+  if (tab === 'linguu') return <LinguuTab />
+  if (tab === 'jobs') return <JobsTab />
 
-  if (!profile) redirect('/login')
+  return <HubContent />
+}
 
-  const lang = (profile.native_language ?? 'ar') as NativeLanguage
+function HubContent() {
+  const { fullName, nativeLang, participantCode } = useParticipant()
+  const [stats, setStats] = useState<Stats | null>(null)
+
+  const lang = nativeLang
   const isRtl = lang === 'ar' || lang === 'ku'
-  const firstName = profile.full_name?.split(' ')[0] ?? ''
-  const code = profile.participant_code ?? ''
-  const monthStart = monthStartIso()
+  const firstName = fullName.split(' ')[0] ?? ''
+  const code = participantCode
 
-  const [{ data: progressRows }, { data: jobmateRows }, { data: assessments }] = await Promise.all([
-    db.from('linguu_progress')
-      .select('lesson_type, score, xp_earned, completed_at')
-      .eq('user_id', user.id),
-    db.from('jobmate_activity')
-      .select('activity_type, created_at')
-      .eq('user_id', user.id),
-    db.from('assessment_results')
-      .select('level, created_at')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-      .limit(1),
-  ])
-
-  const progress = progressRows ?? []
-  const jobmate = jobmateRows ?? []
-  const monthlyProgress = progress.filter(row => row.completed_at >= monthStart)
-  const monthlyJobmate = jobmate.filter(row => row.created_at >= monthStart)
-  const quizScores = progress
-    .filter(row => row.lesson_type === 'quiz' && row.score != null)
-    .map(row => row.score as number)
-  const avgQuiz = quizScores.length
-    ? Math.round(quizScores.reduce((sum, score) => sum + score, 0) / quizScores.length)
-    : 0
-  const totalXp = progress.reduce((sum, row) => sum + (row.xp_earned ?? 0), 0)
-  const latestLevel = assessments?.[0]?.level ?? 'offen'
-  const cvUpdates = monthlyJobmate.filter(row => row.activity_type === 'cv_upload').length
-  const jobsSaved = monthlyJobmate.filter(row => row.activity_type === 'job_saved').length
-  const applications = monthlyJobmate.filter(row => row.activity_type === 'application').length
+  useEffect(() => {
+    let active = true
+    fetch('/api/participant/stats')
+      .then(res => (res.ok ? res.json() : null))
+      .then(data => { if (active && data) setStats(data) })
+      .catch(() => { /* Stats bleiben im Lade-/Leerzustand — Shell funktioniert trotzdem */ })
+    return () => { active = false }
+  }, [])
 
   const actions = [
     {
@@ -110,8 +107,8 @@ export default async function TeilnehmerHubPage() {
     },
     {
       href: '/lernen/einbuergerung',
-      title: 'Einbürgerung & Orientierung',
-      sub: '460 BAMF-Fragen · echter Testmodus mit Bundesland-Auswahl',
+      title: 'Orientierung öffnen',
+      sub: 'Orientierung, Einbürgerung und relevante Inhalte für Geflüchtete',
       icon: Landmark,
       color: '#6366f1',
       external: false,
@@ -120,51 +117,65 @@ export default async function TeilnehmerHubPage() {
 
   return (
     <div className="space-y-6">
-      {code && <WelcomeModal lang={lang} participantCode={code} isNewUser={progress.length === 0 && jobmate.length === 0} />}
+      {code && stats && (
+        <WelcomeModal
+          lang={lang}
+          participantCode={code}
+          isNewUser={stats.totalProgress === 0 && stats.totalJobmate === 0}
+        />
+      )}
 
       <div className="rounded-2xl p-5"
         style={{ background: 'linear-gradient(135deg, rgba(79,70,229,0.12), rgba(245,158,11,0.10))', border: '1px solid var(--border)' }}>
-        <div className="flex items-start gap-4">
+        <div className="flex items-start gap-4 flex-wrap">
           <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-white font-bold text-lg"
             style={{ background: 'var(--primary)' }}>
-            W
+            E
           </div>
-          <div className="flex-1">
+          <div className="flex-1 min-w-[200px]">
             <h1 className="text-xl font-semibold" dir={isRtl ? 'rtl' : 'ltr'}>
               {GREETINGS[lang] ?? GREETINGS.en}, {firstName} 👋
             </h1>
             <p className="text-sm mt-1" style={{ color: 'var(--muted)' }}>
-              Das ist deine WID-Schaltzentrale. Hier siehst du deinen Fortschritt aus Linguu und JobMate.
+              Das ist deine Enter-Schaltzentrale. Hier siehst du deinen Fortschritt aus Linguu, JobMate und Orientierung.
             </p>
             {code && (
               <div className="inline-flex items-center gap-2 mt-3 px-3 py-1.5 rounded-full text-xs"
                 style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
                 <ShieldCheck size={13} style={{ color: 'var(--success)' }} />
-                <span style={{ color: 'var(--muted)' }}>WID-Code</span>
+                <span style={{ color: 'var(--muted)' }}>Enter-Code</span>
                 <span className="font-mono font-bold" style={{ color: 'var(--primary)' }}>{code}</span>
               </div>
             )}
           </div>
+          <AttendanceClock />
         </div>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard icon={BookOpen} color="#6366f1" value={monthlyProgress.length} label="Linguu-Lektionen" sub="diesen Monat" />
-        <StatCard icon={FileText} color="#10b981" value={cvUpdates} label="CV bearbeitet" sub="via JobMate" />
-        <StatCard icon={Briefcase} color="#f59e0b" value={jobsSaved} label="Jobs interessant" sub="diesen Monat" />
-        <StatCard icon={BarChart3} color="#ef4444" value={applications} label="Bewerbungen" sub="dokumentiert" />
+        <StatCard icon={BookOpen} color="#6366f1" value={stats?.monthlyLinguu ?? null} label="Linguu-Lektionen" sub="diesen Monat" />
+        <StatCard icon={FileText} color="#10b981" value={stats?.cvUpdates ?? null} label="CV bearbeitet" sub="via JobMate" />
+        <StatCard icon={Briefcase} color="#f59e0b" value={stats?.jobsSaved ?? null} label="Jobs interessant" sub="diesen Monat" />
+        <StatCard icon={BarChart3} color="#ef4444" value={stats?.applications ?? null} label="Bewerbungen" sub="dokumentiert" />
       </div>
 
       <div className="card">
         <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--primary)' }}>
           Dein aktueller Nachweis
         </p>
-        <p className="text-sm leading-relaxed">
-          Du hast insgesamt <strong>{progress.length}</strong> Linguu-Aktivitäten mit <strong>{totalXp} XP</strong> abgeschlossen,
-          dein aktuelles Sprachniveau ist <strong>{latestLevel}</strong>
-          {avgQuiz > 0 ? <> und dein Quiz-Durchschnitt liegt bei <strong>{avgQuiz}%</strong></> : null}.
-          In JobMate wurden diesen Monat <strong>{jobsSaved}</strong> interessante Jobs und <strong>{applications}</strong> Bewerbungen dokumentiert.
-        </p>
+        {stats ? (
+          <p className="text-sm leading-relaxed">
+            Du hast insgesamt <strong>{stats.totalProgress}</strong> Linguu-Aktivitäten mit <strong>{stats.totalXp} XP</strong> abgeschlossen,
+            dein aktuelles Sprachniveau ist <strong>{stats.latestLevel}</strong>
+            {stats.avgQuiz > 0 ? <> und dein Quiz-Durchschnitt liegt bei <strong>{stats.avgQuiz}%</strong></> : null}.
+            In JobMate wurden diesen Monat <strong>{stats.jobsSaved}</strong> interessante Jobs und <strong>{stats.applications}</strong> Bewerbungen dokumentiert.
+          </p>
+        ) : (
+          <div className="space-y-2">
+            <div className="rounded animate-pulse" style={{ height: 14, width: '100%', background: 'var(--surface-2)' }} />
+            <div className="rounded animate-pulse" style={{ height: 14, width: '80%', background: 'var(--surface-2)' }} />
+          </div>
+        )}
       </div>
 
       {code && <GuideSection lang={lang} participantCode={code} />}
@@ -186,7 +197,7 @@ export default async function TeilnehmerHubPage() {
             </>
           )
           return external ? (
-            <a key={href} href={href} target="_blank" rel="noopener noreferrer"
+            <a key={href} href={href}
               className="card flex items-center gap-4 transition-all hover:shadow-md"
               style={{ textDecoration: 'none', borderLeft: `4px solid ${color}` }}>
               {inner}

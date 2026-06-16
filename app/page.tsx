@@ -14,5 +14,7 @@ export default async function Home() {
     .eq('id', user.id)
     .single()
 
-  redirect(profile?.role === 'coordinator' ? '/coordinator' : '/lernen')
+  if (profile?.role === 'global_admin') redirect('/admin')
+  if (profile?.role === 'coordinator') redirect('/coordinator')
+  redirect('/lernen')
 }

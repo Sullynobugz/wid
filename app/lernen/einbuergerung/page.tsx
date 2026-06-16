@@ -293,9 +293,9 @@ export default function EinbuergerungPage() {
           <ArrowLeft size={16} />
         </Link>
         <div>
-          <h1 className="text-xl font-bold leading-none">Einbürgerung & Orientierung</h1>
+          <h1 className="text-xl font-bold leading-none">Orientierung & Einbürgerung</h1>
           <p className="text-xs mt-1" style={{ color: 'var(--muted)' }}>
-            460 offizielle BAMF-Fragen · Simulation des echten Tests
+            Inhalte für Geflüchtete · 460 offizielle BAMF-Fragen · Simulation des echten Tests
           </p>
         </div>
       </div>

@@ -11,65 +11,71 @@ const T: Record<NativeLanguage, {
   step3Title: string; step3Body: string
 }> = {
   ar: {
-    heading: 'كيف تستخدم WID و Linguu و JobMate؟',
-    step1Title: 'WID — مركزك', step1Body: 'أنت هنا. WID يتتبع تقدمك تلقائياً.',
-    step2Title: 'Linguu — تعلم الألمانية', step2Body: 'افتح linguu.techstag.de وأدخل كود WID الخاص بك للمزامنة.', step2Code: 'كود WID الخاص بك',
+    heading: 'كيف تستخدم Enter و Linguu و JobMate؟',
+    step1Title: 'Enter — مركزك', step1Body: 'أنت هنا. Enter يتتبع تقدمك تلقائياً.',
+    step2Title: 'Linguu — تعلم الألمانية', step2Body: 'افتح linguu.techstag.de وأدخل كود Enter الخاص بك للمزامنة.', step2Code: 'كود Enter الخاص بك',
     step3Title: 'JobMate — ابحث عن عمل', step3Body: 'افتح jobmate.techstag.de وحسّن سيرتك الذاتية بمساعدة الذكاء الاصطناعي.',
   },
   uk: {
-    heading: 'Як користуватися WID, Linguu і JobMate?',
-    step1Title: 'WID — твій центр', step1Body: 'Ти тут. WID автоматично відстежує твій прогрес.',
-    step2Title: 'Linguu — вчи німецьку', step2Body: 'Відкрий linguu.techstag.de і введи свій WID-код для синхронізації.', step2Code: 'Твій WID-код',
+    heading: 'Як користуватися Enter, Linguu і JobMate?',
+    step1Title: 'Enter — твій центр', step1Body: 'Ти тут. Enter автоматично відстежує твій прогрес.',
+    step2Title: 'Linguu — вчи німецьку', step2Body: 'Відкрий linguu.techstag.de і введи свій Enter-код для синхронізації.', step2Code: 'Твій Enter-код',
     step3Title: 'JobMate — знайди роботу', step3Body: 'Відкрий jobmate.techstag.de і покращ резюме з допомогою ШІ.',
   },
   es: {
-    heading: '¿Cómo usar WID, Linguu y JobMate?',
-    step1Title: 'WID — tu centro', step1Body: 'Estás aquí. WID registra tu progreso automáticamente.',
-    step2Title: 'Linguu — aprende alemán', step2Body: 'Abre linguu.techstag.de e introduce tu código WID para sincronizar.', step2Code: 'Tu código WID',
+    heading: '¿Cómo usar Enter, Linguu y JobMate?',
+    step1Title: 'Enter — tu centro', step1Body: 'Estás aquí. Enter registra tu progreso automáticamente.',
+    step2Title: 'Linguu — aprende alemán', step2Body: 'Abre linguu.techstag.de e introduce tu código Enter para sincronizar.', step2Code: 'Tu código Enter',
     step3Title: 'JobMate — encuentra trabajo', step3Body: 'Abre jobmate.techstag.de y mejora tu CV con ayuda de IA.',
   },
   en: {
-    heading: 'How to use WID, Linguu & JobMate?',
-    step1Title: 'WID — your hub', step1Body: "You're here. WID automatically tracks your progress.",
-    step2Title: 'Linguu — learn German', step2Body: 'Open linguu.techstag.de and enter your WID code to sync.', step2Code: 'Your WID code',
+    heading: 'How to use Enter, Linguu & JobMate?',
+    step1Title: 'Enter — your hub', step1Body: "You're here. Enter automatically tracks your progress.",
+    step2Title: 'Linguu — learn German', step2Body: 'Open linguu.techstag.de and enter your Enter code to sync.', step2Code: 'Your Enter code',
     step3Title: 'JobMate — find a job', step3Body: 'Open jobmate.techstag.de and improve your CV with AI.',
   },
   ku: {
-    heading: 'Çawa WID, Linguu û JobMate bikar bîne?',
-    step1Title: 'WID — navenda te', step1Body: 'Tu li vir î. WID pêşkeftina te bixweber bişopîne.',
-    step2Title: 'Linguu — Almanî hîn bibe', step2Body: 'linguu.techstag.de veke û koda WID ya xwe binivîse.', step2Code: 'Koda WID ya te',
+    heading: 'Çawa Enter, Linguu û JobMate bikar bîne?',
+    step1Title: 'Enter — navenda te', step1Body: 'Tu li vir î. Enter pêşkeftina te bixweber bişopîne.',
+    step2Title: 'Linguu — Almanî hîn bibe', step2Body: 'linguu.techstag.de veke û koda Enter ya xwe binivîse.', step2Code: 'Koda Enter ya te',
     step3Title: 'JobMate — kar bibîne', step3Body: 'jobmate.techstag.de veke û CV-ya xwe bi alîkariya ZH baştir bike.',
   },
   tr: {
-    heading: 'WID, Linguu ve JobMate nasıl kullanılır?',
-    step1Title: 'WID — merkezin', step1Body: 'Buradasın. WID ilerlemenizi otomatik olarak takip eder.',
-    step2Title: 'Linguu — Almanca öğren', step2Body: 'linguu.techstag.de\'yi aç ve senkronizasyon için WID kodunu gir.', step2Code: 'WID kodun',
+    heading: 'Enter, Linguu ve JobMate nasıl kullanılır?',
+    step1Title: 'Enter — merkezin', step1Body: 'Buradasın. Enter ilerlemenizi otomatik olarak takip eder.',
+    step2Title: 'Linguu — Almanca öğren', step2Body: 'linguu.techstag.de\'yi aç ve senkronizasyon için Enter kodunu gir.', step2Code: 'Enter kodun',
     step3Title: 'JobMate — iş bul', step3Body: 'jobmate.techstag.de\'yi aç ve yapay zekayla CV\'ni geliştir.',
   },
   pl: {
-    heading: 'Jak korzystać z WID, Linguu i JobMate?',
-    step1Title: 'WID — Twoje centrum', step1Body: 'Jesteś tutaj. WID automatycznie śledzi Twoje postępy.',
-    step2Title: 'Linguu — ucz się niemieckiego', step2Body: 'Otwórz linguu.techstag.de i wpisz swój kod WID do synchronizacji.', step2Code: 'Twój kod WID',
+    heading: 'Jak korzystać z Enter, Linguu i JobMate?',
+    step1Title: 'Enter — Twoje centrum', step1Body: 'Jesteś tutaj. Enter automatycznie śledzi Twoje postępy.',
+    step2Title: 'Linguu — ucz się niemieckiego', step2Body: 'Otwórz linguu.techstag.de i wpisz swój kod Enter do synchronizacji.', step2Code: 'Twój kod Enter',
     step3Title: 'JobMate — znajdź pracę', step3Body: 'Otwórz jobmate.techstag.de i ulepsz CV z pomocą AI.',
   },
   ro: {
-    heading: 'Cum să folosești WID, Linguu și JobMate?',
-    step1Title: 'WID — centrul tău', step1Body: 'Ești aici. WID îți urmărește automat progresul.',
-    step2Title: 'Linguu — învață germana', step2Body: 'Deschide linguu.techstag.de și introdu codul WID pentru sincronizare.', step2Code: 'Codul tău WID',
+    heading: 'Cum să folosești Enter, Linguu și JobMate?',
+    step1Title: 'Enter — centrul tău', step1Body: 'Ești aici. Enter îți urmărește automat progresul.',
+    step2Title: 'Linguu — învață germana', step2Body: 'Deschide linguu.techstag.de și introdu codul Enter pentru sincronizare.', step2Code: 'Codul tău Enter',
     step3Title: 'JobMate — găsește un loc de muncă', step3Body: 'Deschide jobmate.techstag.de și îmbunătățește CV-ul cu AI.',
   },
   ru: {
-    heading: 'Как пользоваться WID, Linguu и JobMate?',
-    step1Title: 'WID — твой центр', step1Body: 'Ты здесь. WID автоматически отслеживает твой прогресс.',
-    step2Title: 'Linguu — учи немецкий', step2Body: 'Открой linguu.techstag.de и введи свой WID-код для синхронизации.', step2Code: 'Твой WID-код',
+    heading: 'Как пользоваться Enter, Linguu и JobMate?',
+    step1Title: 'Enter — твой центр', step1Body: 'Ты здесь. Enter автоматически отслеживает твой прогресс.',
+    step2Title: 'Linguu — учи немецкий', step2Body: 'Открой linguu.techstag.de и введи свой Enter-код для синхронизации.', step2Code: 'Твой Enter-код',
     step3Title: 'JobMate — найди работу', step3Body: 'Открой jobmate.techstag.de и улучши резюме с помощью ИИ.',
+  },
+  de: {
+    heading: 'So nutzt du Enter, Linguu & JobMate',
+    step1Title: 'Enter — dein Zentrum', step1Body: 'Du bist hier. Enter verfolgt deinen Fortschritt automatisch.',
+    step2Title: 'Linguu — Deutsch lernen', step2Body: 'Öffne linguu.techstag.de und gib deinen Enter-Code ein.', step2Code: 'Dein Enter-Code',
+    step3Title: 'JobMate — Arbeit finden', step3Body: 'Öffne jobmate.techstag.de und verbessere deinen Lebenslauf mit KI.',
   },
 }
 
 const DE = {
-  heading: 'So nutzt du WID, Linguu & JobMate',
-  step1Title: 'WID — dein Zentrum', step1Body: 'Du bist hier. WID verfolgt deinen Fortschritt automatisch.',
-  step2Title: 'Linguu — Deutsch lernen', step2Body: 'Öffne linguu.techstag.de und gib deinen WID-Code ein.', step2Code: 'Dein WID-Code',
+  heading: 'So nutzt du Enter, Linguu & JobMate',
+  step1Title: 'Enter — dein Zentrum', step1Body: 'Du bist hier. Enter verfolgt deinen Fortschritt automatisch.',
+  step2Title: 'Linguu — Deutsch lernen', step2Body: 'Öffne linguu.techstag.de und gib deinen Enter-Code ein.', step2Code: 'Dein Enter-Code',
   step3Title: 'JobMate — Arbeit finden', step3Body: 'Öffne jobmate.techstag.de und verbessere deinen Lebenslauf mit KI.',
 }
 
@@ -137,7 +143,7 @@ export default function GuideSection({ lang, participantCode }: Props) {
             {copied ? <Check size={16} /> : <Copy size={16} />}
           </button>
         </div>
-        <a href={linguuUrl} target="_blank" rel="noopener noreferrer"
+        <a href={linguuUrl}
           className="mt-2 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all"
           style={{ background: 'rgba(22,163,74,0.15)', color: '#16a34a', textDecoration: 'none', border: '1.5px solid rgba(22,163,74,0.3)' }}>
           <BookOpen size={14} />
@@ -157,7 +163,7 @@ export default function GuideSection({ lang, participantCode }: Props) {
       body: t.step3Body,
       bodyDE: DE.step3Body,
       extra: (
-        <a href={jobmateUrl} target="_blank" rel="noopener noreferrer"
+        <a href={jobmateUrl}
           className="mt-3 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all"
           style={{ background: 'rgba(245,158,11,0.12)', color: '#d97706', textDecoration: 'none', border: '1.5px solid rgba(245,158,11,0.3)', display: 'flex' }}>
           <Briefcase size={14} />

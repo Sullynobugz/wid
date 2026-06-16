@@ -7,12 +7,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const { data: { user } } = await auth.auth.getUser()
   if (!user) redirect('/login')
 
-  // Admin-Zugang nur für autorisierte E-Mail
-  if (user.email !== 'bastian.sb94@gmail.com') redirect('/coordinator')
-
   const db = createAdminClient()
   const { data: profile } = await db.from('profiles').select('role').eq('id', user.id).single()
-  if (profile?.role !== 'global_admin') redirect('/coordinator')
+  if (profile?.role !== 'global_admin') redirect('/')
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--background)' }}>

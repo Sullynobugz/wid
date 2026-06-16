@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { Users, BookOpen, Briefcase, TrendingUp, Plus } from 'lucide-react'
+import { Users, Briefcase, TrendingUp, Plus, Clock, CheckCircle2, AlertTriangle, Circle } from 'lucide-react'
 import type { ParticipantWithStats } from '@/types'
 import ParticipantTable from '@/components/coordinator/ParticipantTable'
 
@@ -85,6 +85,28 @@ export default async function CoordinatorDashboard() {
     }
   }
 
+  // ── Anwesenheit heute ──────────────────────────────────────────────────
+  const todayDate = new Date().toISOString().slice(0, 10)
+  const { data: attendanceRows } = await db
+    .from('attendance')
+    .select('user_id, check_in, check_out, was_late')
+    .eq('organization_id', profile.organization_id)
+    .eq('date', todayDate)
+  const attendanceMap: Record<string, { check_in: string; check_out: string | null; was_late: boolean }> =
+    Object.fromEntries((attendanceRows ?? []).map(r => [r.user_id, r]))
+
+  // ── Maßnahmen-Statistik: Bewerbungs-Velocity + Zeit bis 1. Bewerbung ──
+  let allApps: { user_id: string; applied_at: string | null; created_at: string }[] = []
+  let createdMap: Record<string, number> = {}
+  if (userIds.length > 0) {
+    const [appsRes, profsRes] = await Promise.all([
+      db.from('jobmate_activity').select('user_id, applied_at, created_at').in('user_id', userIds).eq('activity_type', 'application'),
+      db.from('profiles').select('id, created_at').in('id', userIds),
+    ])
+    allApps = appsRes.data ?? []
+    createdMap = Object.fromEntries((profsRes.data ?? []).map(r => [r.id, new Date(r.created_at).getTime()]))
+  }
+
   const list = (participants ?? []).map(p => ({
     ...p,
     last_active: p.last_active ?? p.last_linguu_active ?? null,
@@ -92,10 +114,31 @@ export default async function CoordinatorDashboard() {
     jobs_saved_this_month: jobsSavedMonthMap[p.id] ?? 0,
     cv_updates_this_month: cvUpdatesMonthMap[p.id] ?? 0,
   }))
-  const activeCount = list.filter(p => p.last_active).length
-  const totalLessons = list.reduce((s, p) => s + p.lessons_completed, 0)
-  const totalApplications = list.reduce((s, p) => s + (p.total_applications ?? 0), 0)
-  const applicationsThisWeek = list.reduce((s, p) => s + (p.applications_this_week ?? 0), 0)
+  // Velocity-Kennzahlen aus Eintritt (created_at) + Bewerbungs-Zeitpunkten
+  const nowMs = Date.now()
+  const WEEK = 7 * 86400000
+  const appsByUser: Record<string, { count: number; first: number }> = {}
+  for (const a of allApps) {
+    const t = new Date(a.applied_at ?? a.created_at).getTime()
+    const u = (appsByUser[a.user_id] ??= { count: 0, first: Infinity })
+    u.count++; u.first = Math.min(u.first, t)
+  }
+  let earliestEntry = nowMs
+  const perPartWeekly: number[] = []
+  const firstAppDays: number[] = []
+  for (const uid of userIds) {
+    const entry = createdMap[uid] ?? nowMs
+    earliestEntry = Math.min(earliestEntry, entry)
+    const weeks = Math.max(1, (nowMs - entry) / WEEK)
+    const ua = appsByUser[uid]
+    perPartWeekly.push((ua?.count ?? 0) / weeks)
+    if (ua) firstAppDays.push((ua.first - entry) / 86400000)
+  }
+  const avg = (xs: number[]) => (xs.length ? xs.reduce((s, x) => s + x, 0) / xs.length : 0)
+  const statActive = list.filter(p => p.last_active && nowMs - new Date(p.last_active).getTime() < 14 * 86400000).length
+  const statPerPartWeekly = avg(perPartWeekly)
+  const statFirstAppDays = avg(firstAppDays)
+  const statMeasureWeekly = allApps.length / Math.max(1, (nowMs - earliestEntry) / WEEK)
 
   return (
     <div>
@@ -114,24 +157,74 @@ export default async function CoordinatorDashboard() {
         </Link>
       </div>
 
-      {/* KPI-Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {[
-          { label: 'Teilnehmer', value: list.length, icon: Users, color: 'var(--primary)' },
-          { label: 'Aktiv diese Woche', value: activeCount, icon: TrendingUp, color: 'var(--success)' },
-          { label: 'Lektionen gesamt', value: totalLessons, icon: BookOpen, color: 'var(--accent)' },
-          { label: 'Bewerbungen (Woche)', value: applicationsThisWeek, icon: Briefcase, color: 'var(--warning)' },
-        ].map(({ label, value, icon: Icon, color }) => (
-          <div key={label} className="card flex items-start gap-3">
-            <div className="p-2 rounded-lg" style={{ background: `${color}15` }}>
-              <Icon size={18} style={{ color }} />
+      {/* Statistiken — Maßnahmen-Overview */}
+      <div className="mb-8">
+        <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--primary)' }}>
+          Statistiken
+        </p>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {[
+            { value: statActive, sub: 'in der Maßnahme · aktiv (14 Tage)', label: 'Aktive Teilnehmer', icon: Users, color: 'var(--primary)' },
+            { value: statPerPartWeekly.toFixed(1), sub: 'pro Teilnehmer / Woche', label: 'Ø Bewerbungen', icon: Briefcase, color: 'var(--warning)' },
+            { value: Math.round(statFirstAppDays), sub: 'Ø nach Maßnahmeneintritt', label: 'Tage bis 1. Bewerbung', icon: Clock, color: 'var(--accent)' },
+            { value: statMeasureWeekly.toFixed(1), sub: 'Maßnahme gesamt / Woche', label: 'Bewerbungs-Output', icon: TrendingUp, color: 'var(--success)' },
+          ].map(({ value, sub, label, icon: Icon, color }) => (
+            <div key={label} className="card">
+              <div className="flex items-center justify-between mb-2">
+                <div className="p-2 rounded-lg" style={{ background: `${color}15` }}>
+                  <Icon size={18} style={{ color }} />
+                </div>
+              </div>
+              <p className="text-3xl font-bold leading-none" style={{ fontFamily: 'Fira Code, monospace', color }}>{value}</p>
+              <p className="text-sm mt-1.5 font-medium">{label}</p>
+              <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>{sub}</p>
             </div>
-            <div>
-              <p className="text-2xl font-bold leading-none" style={{ fontFamily: 'Fira Code, monospace' }}>{value}</p>
-              <p className="text-xs mt-1" style={{ color: 'var(--muted)' }}>{label}</p>
+          ))}
+        </div>
+      </div>
+
+      {/* Anwesenheit heute */}
+      <div className="mb-8">
+        <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--primary)' }}>
+          Anwesenheit heute · {new Date().toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit' })}
+        </p>
+        <div className="card p-0 overflow-hidden">
+          {list.length === 0 ? (
+            <p className="px-6 py-4 text-sm" style={{ color: 'var(--muted)' }}>Noch keine Teilnehmer angelegt.</p>
+          ) : (
+            <div className="divide-y" style={{ borderColor: 'var(--border)' }}>
+              {list.map(p => {
+                const att = attendanceMap[p.id]
+                const checkIn = att?.check_in ? new Date(att.check_in).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) : null
+                const checkOut = att?.check_out ? new Date(att.check_out).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) : null
+                return (
+                  <div key={p.id} className="flex items-center gap-3 px-5 py-3">
+                    {att ? (
+                      att.was_late
+                        ? <AlertTriangle size={16} style={{ color: 'var(--warning)', flexShrink: 0 }} />
+                        : <CheckCircle2 size={16} style={{ color: 'var(--success)', flexShrink: 0 }} />
+                    ) : (
+                      <Circle size={16} style={{ color: 'var(--border)', flexShrink: 0 }} />
+                    )}
+                    <span className="flex-1 text-sm font-medium">{p.full_name}</span>
+                    {att ? (
+                      <span className="text-sm" style={{ color: 'var(--muted)' }}>
+                        eingestempelt <strong style={{ color: 'var(--text)', fontFamily: 'Fira Code, monospace' }}>{checkIn}</strong>
+                        {checkOut && <> · ausgestempelt <strong style={{ color: 'var(--text)', fontFamily: 'Fira Code, monospace' }}>{checkOut}</strong></>}
+                        {' · '}
+                        <span style={{ color: att.was_late ? 'var(--warning)' : 'var(--success)' }}>
+                          {att.was_late ? 'verspätet' : 'pünktlich'}
+                        </span>
+                      </span>
+                    ) : (
+                      <span className="text-sm" style={{ color: 'var(--muted)' }}>noch nicht eingestempelt</span>
+                    )}
+                  </div>
+                )
+              })}
             </div>
-          </div>
-        ))}
+          )}
+        </div>
       </div>
 
       {/* Teilnehmer-Tabelle */}

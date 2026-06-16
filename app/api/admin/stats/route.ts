@@ -5,7 +5,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 export async function GET() {
   const auth = await createClient()
   const { data: { user } } = await auth.auth.getUser()
-  if (!user || user.email !== 'bastian.sb94@gmail.com') {
+  if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

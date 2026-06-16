@@ -33,7 +33,7 @@ export default function CoordinatorNav({ userName, orgName, isGlobalAdmin }: Pro
           style={{ fontFamily: 'Fira Code, monospace', color: 'var(--primary)' }}>
           <div className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-sm font-bold"
             style={{ background: 'var(--primary)' }}>W</div>
-          WID
+          Enter
         </Link>
 
         <div className="flex items-center gap-1 flex-1">

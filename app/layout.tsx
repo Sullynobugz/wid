@@ -10,8 +10,8 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: 'WID — Willkommen in Deutschland',
-  description: 'Integrationsplattform für Maßnahme-Träger',
+  title: 'Enter — Integration, Sprache und Arbeit',
+  description: 'Dachplattform für Maßnahme-Träger',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

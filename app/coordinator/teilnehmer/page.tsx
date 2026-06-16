@@ -183,9 +183,9 @@ function CredentialsSheet({ participants, onReset }: {
             style={{ borderColor: 'var(--border)', background: 'white' }}>
             <div className="flex items-center gap-2 mb-4">
               <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm font-bold"
-                style={{ background: 'var(--primary)' }}>W</div>
-              <span className="font-bold text-sm" style={{ fontFamily: 'Fira Code, monospace' }}>WID</span>
-              <span className="text-xs ml-auto" style={{ color: 'var(--muted)' }}>Willkommen in Deutschland</span>
+                style={{ background: 'var(--primary)' }}>E</div>
+              <span className="font-bold text-sm" style={{ fontFamily: 'Fira Code, monospace' }}>Enter</span>
+              <span className="text-xs ml-auto" style={{ color: 'var(--muted)' }}>Sprache · Arbeit · Orientierung</span>
             </div>
 
             <p className="font-semibold text-base mb-3">{p.full_name}</p>

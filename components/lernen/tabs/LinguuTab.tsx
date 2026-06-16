@@ -1,7 +1,6 @@
 'use client'
 
-import { ExternalLink, BookOpen, ArrowLeft } from 'lucide-react'
-import Link from 'next/link'
+import { ExternalLink, BookOpen } from 'lucide-react'
 import type { NativeLanguage } from '@/types'
 import { CopyButton } from '@/components/lernen/CopyButton'
 import { useParticipant } from '@/components/lernen/ParticipantProvider'
@@ -30,26 +29,20 @@ const DE = {
   hint: 'Dein Code wird automatisch eingetragen',
 }
 
-export default function LinguuPage() {
+export function LinguuTab() {
   const { nativeLang, participantCode } = useParticipant()
 
   const lang = nativeLang
   const L = LABELS[lang] ?? LABELS.en
   const isRtl = lang === 'ar' || lang === 'ku'
   const code = participantCode
-
   const linguuUrl = `https://linguu.techstag.de/?wid=${encodeURIComponent(code)}`
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <Link href="/lernen" className="p-2 rounded-lg" style={{ color: 'var(--muted)', background: 'var(--surface-2)' }}>
-          <ArrowLeft size={16} />
-        </Link>
-        <div>
-          <h1 className="text-lg font-bold leading-none" dir={isRtl ? 'rtl' : 'ltr'}>{L.title}</h1>
-          <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>{DE.title}</p>
-        </div>
+      <div>
+        <h1 className="text-lg font-bold leading-none" dir={isRtl ? 'rtl' : 'ltr'}>{L.title}</h1>
+        <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>{DE.title}</p>
       </div>
 
       <p className="text-sm" style={{ color: 'var(--muted)' }} dir={isRtl ? 'rtl' : 'ltr'}>{L.sub}</p>
@@ -57,7 +50,6 @@ export default function LinguuPage() {
         <p className="text-xs -mt-4" style={{ color: 'var(--muted)', opacity: 0.7 }}>{DE.sub}</p>
       )}
 
-      {/* Enter-Code prominent */}
       <div className="card" style={{ borderColor: '#10b981', borderWidth: 2 }}>
         <p className="text-xs font-semibold uppercase tracking-widest mb-0.5" style={{ color: '#10b981' }} dir={isRtl ? 'rtl' : 'ltr'}>
           {L.codeLabel}
@@ -74,7 +66,6 @@ export default function LinguuPage() {
         </div>
       </div>
 
-      {/* Linguu CTA — übergibt Code direkt per URL */}
       <a href={linguuUrl}
         className="card flex items-center gap-4 transition-all hover:shadow-md cursor-pointer"
         style={{ textDecoration: 'none', borderColor: '#10b981', borderWidth: 2 }}>

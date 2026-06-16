@@ -3,8 +3,10 @@ const DIGITS = '0123456789'
 const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
 
 export function generateParticipantCode(): string {
-  let code = 'WID-'
-  for (let i = 0; i < 5; i++) code += CODE_CHARS[Math.floor(Math.random() * CODE_CHARS.length)]
+  // Markenneutraler 6-Zeichen-Code (kein Prefix). Bestehende WID-* Codes
+  // bleiben über codeToEmail() weiterhin gültig — nur Neuvergabe ist prefixlos.
+  let code = ''
+  for (let i = 0; i < 6; i++) code += CODE_CHARS[Math.floor(Math.random() * CODE_CHARS.length)]
   return code
 }
 

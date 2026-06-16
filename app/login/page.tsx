@@ -13,8 +13,8 @@ const LABELS = {
   participant: {
     tab: 'Teilnehmer',
     tab_sub: 'مشارك • Учасник • Katılımcı',
-    code_label: 'Ihr Code / Your Code / كودك',
-    code_placeholder: 'WID-XXXXX',
+    code_label: 'Enter-Code / Your Code / كودك',
+    code_placeholder: 'z. B. AB23CD',
     pass_label: 'Passwort / Password / كلمة المرور',
     submit: 'Anmelden',
   },
@@ -59,10 +59,18 @@ export default function LoginPage() {
     setLoading(true)
     setError('')
 
-    const email = tab === 'participant' ? codeToEmail(code.trim().toUpperCase()) : code.trim()
+    // Teilnehmer: Code → interne E-Mail. Koordinator/Admin: echte E-Mail (enthält "@")
+    // wird direkt genutzt; ein einfacher Name ohne "@" (z.B. Test-Logins "Coordinator"/"admin")
+    // wird ebenfalls auf eine interne @wid.internal-Adresse gemappt.
+    const email =
+      tab === 'participant'
+        ? codeToEmail(code.trim().toUpperCase())
+        : code.includes('@')
+          ? code.trim()
+          : codeToEmail(code.trim())
     const supabase = createClient()
 
-    const { error: authError } = await supabase.auth.signInWithPassword({ email, password })
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email, password })
 
     if (authError) {
       setError(tab === 'participant'
@@ -73,8 +81,16 @@ export default function LoginPage() {
       return
     }
 
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', authData.user.id)
+      .single()
+
     router.refresh()
-    router.push(tab === 'coordinator' ? '/coordinator' : '/lernen')
+    if (profile?.role === 'global_admin') router.push('/admin')
+    else if (profile?.role === 'coordinator') router.push('/coordinator')
+    else router.push('/lernen')
   }
 
   return (
@@ -88,9 +104,9 @@ export default function LoginPage() {
               style={{ background: 'var(--primary)' }}>
               W
             </div>
-            <span className="text-2xl font-bold" style={{ fontFamily: 'Fira Code, monospace' }}>WID</span>
+            <span className="text-2xl font-bold" style={{ fontFamily: 'Fira Code, monospace' }}>Enter</span>
           </div>
-          <p className="text-sm" style={{ color: 'var(--muted)' }}>Willkommen in Deutschland</p>
+          <p className="text-sm" style={{ color: 'var(--muted)' }}>Sprache · Arbeit · Orientierung</p>
         </div>
 
         <div className="card">
@@ -145,7 +161,7 @@ export default function LoginPage() {
             <div>
               <label>{l.code_label}</label>
               <input
-                type={tab === 'coordinator' ? 'email' : 'text'}
+                type="text"
                 placeholder={l.code_placeholder}
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
@@ -204,7 +220,7 @@ export default function LoginPage() {
         </div>
 
         <p className="text-center text-xs mt-6" style={{ color: 'var(--muted)' }}>
-          WID · Mamooon UG · Powered by TechStag
+          Enter · Mamooon UG · Powered by TechStag
         </p>
       </div>
     </div>

@@ -34,8 +34,8 @@ export default function ResetPasswordPage() {
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 mb-3">
             <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-lg"
-              style={{ background: 'var(--primary)' }}>W</div>
-            <span className="text-2xl font-bold" style={{ fontFamily: 'Fira Code, monospace' }}>WID</span>
+              style={{ background: 'var(--primary)' }}>E</div>
+            <span className="text-2xl font-bold" style={{ fontFamily: 'Fira Code, monospace' }}>Enter</span>
           </div>
           <p className="text-sm" style={{ color: 'var(--muted)' }}>Neues Passwort setzen</p>
         </div>

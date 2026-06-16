@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Key, X, Copy, Check, ChevronDown, ChevronUp, ExternalLink, ShieldCheck, Clock, BookOpen, Briefcase } from 'lucide-react'
+import Link from 'next/link'
+import { Key, X, Copy, Check, ChevronDown, ChevronUp, ExternalLink, ShieldCheck, Clock, BookOpen, Briefcase, FileBarChart } from 'lucide-react'
 import type { ApplicationRecord, ParticipantWithStats } from '@/types'
 
 function formatDate(iso: string | null | undefined) {
@@ -231,6 +232,14 @@ export default function ParticipantTable({ participants }: { participants: Parti
                   {/* Aktionen */}
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-1">
+                      <Link
+                        href={`/coordinator/teilnehmer/${p.id}`}
+                        onClick={e => e.stopPropagation()}
+                        title="Vollständiges Dossier ansehen"
+                        className="p-1.5 rounded cursor-pointer transition-colors hover:bg-[var(--bg)]"
+                        style={{ color: 'var(--primary)' }}>
+                        <FileBarChart size={15} />
+                      </Link>
                       <button
                         onClick={e => { e.stopPropagation(); resetPassword(p.id) }}
                         disabled={loading === p.id}
@@ -353,7 +362,7 @@ export default function ParticipantTable({ participants }: { participants: Parti
             <p className="font-medium mb-4">{modal.full_name}</p>
             <div className="space-y-3 text-sm">
               <div className="flex justify-between items-center py-2 border-b" style={{ borderColor: 'var(--border)' }}>
-                <span style={{ color: 'var(--muted)' }}>WID-Code</span>
+                <span style={{ color: 'var(--muted)' }}>Enter-Code</span>
                 <span className="font-mono font-bold" style={{ color: 'var(--primary)' }}>{modal.participant_code}</span>
               </div>
               <div className="flex justify-between items-center py-2">
@@ -362,7 +371,7 @@ export default function ParticipantTable({ participants }: { participants: Parti
               </div>
             </div>
             <button
-              onClick={() => copyToClipboard(`WID-Code: ${modal.participant_code}\nPasswort: ${modal.password}`)}
+              onClick={() => copyToClipboard(`Enter-Code: ${modal.participant_code}\nPasswort: ${modal.password}`)}
               className="btn-primary w-full justify-center mt-5 text-sm"
               style={{ padding: '0.625rem 1rem' }}>
               {copied ? <><Check size={14} /> Kopiert</> : <><Copy size={14} /> Kopieren</>}

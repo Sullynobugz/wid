@@ -23,7 +23,7 @@ const LABELS: Record<NativeLanguage, {
 
 const DE = { title: 'Arbeit finden', sub: 'Nutze deinen Enter-Code in JobMate', codeLabel: 'Dein Enter-Code', copyHint: 'Code kopieren und in JobMate eingeben', openLabel: 'JobMate öffnen' }
 
-export default function JobsPage() {
+export function JobsTab() {
   const { nativeLang, participantCode } = useParticipant()
 
   const lang = nativeLang
@@ -38,15 +38,19 @@ export default function JobsPage() {
         <p className="text-sm mt-1" style={{ color: 'var(--muted)' }}>{L.sub}</p>
       </div>
 
-      {/* Enter-Code prominent */}
       <div className="card" style={{ borderColor: 'var(--primary)', borderWidth: 2 }}>
         <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--primary)' }}>
           {L.codeLabel}
         </p>
-        <CodeDisplay code={code} copyHint={L.copyHint} />
+        <div className="flex items-center gap-3">
+          <span className="text-3xl font-bold tracking-widest flex-1" style={{ fontFamily: 'Fira Code, monospace', color: 'var(--primary)' }}>
+            {code}
+          </span>
+          <CopyButton text={code} />
+          <span className="text-xs" style={{ color: 'var(--muted)' }}>{L.copyHint}</span>
+        </div>
       </div>
 
-      {/* 3-Step Anleitung */}
       <div className="card space-y-4">
         {[L.step1, L.step2, L.step3].map((step, i) => (
           <div key={i} className="flex items-center gap-4">
@@ -57,7 +61,6 @@ export default function JobsPage() {
         ))}
       </div>
 
-      {/* JobMate CTA */}
       <a href={jobmateUrl}
         className="card flex items-center gap-4 transition-all hover:shadow-md"
         style={{ textDecoration: 'none', borderColor: 'var(--primary)' }}>
@@ -70,18 +73,6 @@ export default function JobsPage() {
         </div>
         <ExternalLink size={18} style={{ color: 'var(--muted)' }} />
       </a>
-    </div>
-  )
-}
-
-function CodeDisplay({ code, copyHint }: { code: string; copyHint: string }) {
-  return (
-    <div className="flex items-center gap-3">
-      <span className="text-3xl font-bold tracking-widest flex-1" style={{ fontFamily: 'Fira Code, monospace', color: 'var(--primary)' }}>
-        {code}
-      </span>
-      <CopyButton text={code} />
-      <span className="text-xs" style={{ color: 'var(--muted)' }}>{copyHint}</span>
     </div>
   )
 }

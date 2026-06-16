@@ -23,9 +23,17 @@ const TTS_VOICE: Partial<Record<Lang, string>> = {
   es: 'nova',  tr: 'echo', pl: 'echo',    ro: 'echo', ru: 'shimmer',
 }
 
-const MIME = MediaRecorder.isTypeSupported?.('audio/webm;codecs=opus')
-  ? 'audio/webm;codecs=opus'
-  : 'audio/webm'
+// Lazy ausgewertet — NICHT auf Modul-Ebene: `MediaRecorder` ist ein Browser-Global
+// und existiert beim Server-Side-Rendering nicht. Ein Modul-Level-Zugriff würde den
+// gesamten Lernbereich (Layout) beim SSR mit "MediaRecorder is not defined" crashen.
+function getSupportedMime(): string {
+  if (typeof MediaRecorder === 'undefined' || !MediaRecorder.isTypeSupported) {
+    return 'audio/webm'
+  }
+  return MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+    ? 'audio/webm;codecs=opus'
+    : 'audio/webm'
+}
 
 interface PanelState {
   listening: boolean
@@ -54,8 +62,8 @@ async function translateText(text: string, from: Lang, to: Lang, onChunk: (c: st
 
 async function whisper(blob: Blob, lang: Lang): Promise<string> {
   const form = new FormData()
-  const ext = MIME.includes('webm') ? 'webm' : 'ogg'
-  form.append('audio', new File([blob], `audio.${ext}`, { type: MIME }))
+  const ext = blob.type.includes('webm') ? 'webm' : 'ogg'
+  form.append('audio', new File([blob], `audio.${ext}`, { type: blob.type }))
   form.append('lang', lang)
   const res = await fetch('/api/whisper', { method: 'POST', body: form })
   const data = await res.json()
@@ -96,7 +104,8 @@ function usePanel(lang: Lang, toLang: Lang, voiceOutput: boolean) {
       return
     }
 
-    const recorder = new MediaRecorder(stream, { mimeType: MIME })
+    const mime = getSupportedMime()
+    const recorder = new MediaRecorder(stream, { mimeType: mime })
     recorderRef.current = recorder
     chunksRef.current = []
 
@@ -106,7 +115,7 @@ function usePanel(lang: Lang, toLang: Lang, voiceOutput: boolean) {
       stream.getTracks().forEach(t => t.stop())
       setState(s => ({ ...s, listening: false, processing: true }))
       try {
-        const blob = new Blob(chunksRef.current, { type: MIME })
+        const blob = new Blob(chunksRef.current, { type: mime })
         const text = await whisper(blob, lang)
         setState(s => ({ ...s, transcript: text }))
         let full = ''
